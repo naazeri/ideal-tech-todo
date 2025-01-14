@@ -1,15 +1,14 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
-import './globals.css';
+import './styles/globals.css';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
+import { ThemeProvider } from '@mui/material/styles';
+import { Poppins } from 'next/font/google';
+import theme from './theme/theme';
+import { Providers } from './store/providers';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+const poppins = Poppins({
+  subsets: ['latin'], // Specify subsets (e.g., latin)
+  weight: ['400', '500', '600', '700'], // Specify weights you need
 });
 
 export const metadata: Metadata = {
@@ -24,8 +23,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+      <body className={`${poppins.className}`}>
+        <Providers>
+          <AppRouterCacheProvider>
+            <ThemeProvider theme={theme}>{children}</ThemeProvider>
+          </AppRouterCacheProvider>
+        </Providers>
       </body>
     </html>
   );
