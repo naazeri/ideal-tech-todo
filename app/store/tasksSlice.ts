@@ -33,7 +33,7 @@ export const addTodo = createAsyncThunk(
 
 export const editTodo = createAsyncThunk(
   'tasks/editTodo',
-  async ({ id, todo }: { id: string; todo: Partial<Task> }) => {
+  async ({ id, todo }: { id: string; todo: Partial<Omit<Task, '_id'>> }) => {
     return await updateTodo(id, todo);
   }
 );

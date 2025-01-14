@@ -14,7 +14,10 @@ export const createTodo = async (todo: Omit<Task, '_id'>) => {
 };
 
 // Update an existing todo
-export const updateTodo = async (id: string, todo: Partial<Task>) => {
+export const updateTodo = async (
+  id: string,
+  todo: Partial<Omit<Task, '_id'>>
+) => {
   const response = await axiosInstance.put('todos/update/${id}', todo);
   return response.data;
 };
