@@ -1,4 +1,4 @@
-import Task from '../model/todo';
+import { TodoCreate, TodoUpdate } from '../model/todo';
 import axiosInstance from './axiosConfig';
 
 // Fetch all todos
@@ -8,17 +8,14 @@ export const fetchTodos = async () => {
 };
 
 // Create a new todo
-export const createTodo = async (todo: Omit<Task, '_id'>) => {
+export const createTodo = async (todo: TodoCreate) => {
   const response = await axiosInstance.post('todos/create', todo);
   return response.data;
 };
 
 // Update an existing todo
-export const updateTodo = async (
-  id: string,
-  todo: Partial<Omit<Task, '_id'>>
-) => {
-  const response = await axiosInstance.put('todos/update/${id}', todo);
+export const updateTodo = async (id: string, todo: TodoUpdate) => {
+  const response = await axiosInstance.put(`todos/update/${id}`, todo);
   return response.data;
 };
 

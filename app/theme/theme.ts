@@ -2,10 +2,15 @@
 import { createTheme } from '@mui/material/styles';
 
 const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#0760FB',
+    },
+  },
   typography: {
     fontFamily: 'Poppins, Arial, sans-serif',
   },
-  cssVariables: true,
+  // cssVariables: true,
 });
 
 export default theme;

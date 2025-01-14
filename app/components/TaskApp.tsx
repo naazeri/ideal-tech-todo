@@ -17,30 +17,47 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Alert,
+  Snackbar,
+  Avatar,
 } from '@mui/material';
+import { CheckCircle, RadioButtonUnchecked, Add } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
 import { getTodos, addTodo, editTodo, removeTodo } from '../store/tasksSlice';
+import CustomChip from './CustomChip';
 
 const TaskApp = () => {
   const dispatch: AppDispatch = useDispatch();
-  const { tasks, loading, error } = useSelector(
+  const { tasks, loading, error, message } = useSelector(
     (state: RootState) => state.tasks
   );
 
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [tab, setTab] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
-  const [newTask, setNewTask] = useState({
-    title: '',
-    description: '',
-    start_date: '',
-    end_date: '',
-  });
+  const [newTask, setNewTask] = useState(emptyTask);
 
   // Fetch tasks on component mount
   useEffect(() => {
     dispatch(getTodos());
   }, [dispatch]);
+
+  // Show Snackbar when message changes
+  useEffect(() => {
+    if (message) {
+      setSnackbarOpen(true);
+    }
+  }, [message]);
+
+  // Handle Snackbar close
+  const handleSnackbarClose = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === 'clickaway') return;
+    setSnackbarOpen(false);
+  };
 
   // Handle tab change
   const handleTabChange = (event: SyntheticEvent, newValue: number) => {
@@ -77,20 +94,31 @@ const TaskApp = () => {
         description,
         start_date: new Date(start_date).toISOString(),
         end_date: new Date(end_date).toISOString(),
-        is_completed: false,
       })
     );
 
     // Reset form and close modal
-    setNewTask({ title: '', description: '', start_date: '', end_date: '' });
+    setNewTask(emptyTask);
     closeModal();
   };
 
   return (
     <Box sx={{ width: '100%', p: 0, backgroundColor: '#f5f5f5' }}>
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity="success">
+          {message}
+        </Alert>
+      </Snackbar>
+
       {/* Tabs */}
       <Tabs value={tab} onChange={handleTabChange} centered>
-        <Tab label="Today's Task" />
+        <Tab label="Today's Task" sx={{}} />
         <Tab label="Tomorrow's Task" />
       </Tabs>
 
@@ -105,24 +133,36 @@ const TaskApp = () => {
           <Typography variant="h6" fontWeight="bold">
             Today&#39;s Task
           </Typography>
-          <Typography variant="subtitle1" color="textSecondary">
+          <Typography variant="subtitle2" color="textDisabled">
             Wednesday, 11 May
           </Typography>
         </Box>
         <Button
           variant="contained"
-          color="primary"
           size="small"
-          sx={{ textTransform: 'none' }}
+          sx={{
+            textTransform: 'none',
+            backgroundColor: '#0760FB1A',
+            color: 'primary.main',
+            borderRadius: '10px',
+            fontSize: '14px',
+            padding: '8px 16px',
+            boxShadow: 'none',
+            '&:hover': {
+              backgroundColor: '#0760FB26',
+              boxShadow: 'none',
+            },
+          }}
           onClick={openModal}
         >
-          + New Task
+          <Add sx={{ fontSize: '17px', marginRight: '8px' }} /> New Task
         </Button>
       </Box>
 
       {/* Filter Chips */}
       <Box display="flex" gap={2} mt={2}>
-        <Chip label="All" color="primary" variant="filled" />
+        <CustomChip label="All" badgeNumber={35} />
+        <CustomChip label="All" badgeNumber={'14'} disabled />
         <Chip label="Open" color="default" variant="outlined" />
         <Chip label="Closed" color="default" variant="outlined" />
         <Chip label="Archived" color="default" variant="outlined" />
@@ -184,6 +224,8 @@ const TaskApp = () => {
               </Box>
               <Box display="flex" alignItems="center" gap={1}>
                 <Checkbox
+                  icon={<RadioButtonUnchecked color="disabled" />}
+                  checkedIcon={<CheckCircle color="primary" />}
                   checked={task.is_completed}
                   onChange={(e) =>
                     handleTaskCompletion(task._id, e.target.checked)
@@ -261,5 +303,7 @@ const TaskApp = () => {
     </Box>
   );
 };
+
+const emptyTask = { title: '', description: '', start_date: '', end_date: '' };
 
 export default TaskApp;

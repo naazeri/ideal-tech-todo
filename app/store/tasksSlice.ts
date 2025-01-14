@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import Task from '../model/todo';
+import Todo, { TodoCreate, TodoUpdate } from '../model/todo';
 import {
   createTodo,
   deleteTodo,
@@ -8,15 +8,17 @@ import {
 } from '../api/todoService';
 
 interface TasksState {
-  tasks: Task[];
+  tasks: Todo[];
   loading: boolean;
   error: string | null;
+  message: string | null;
 }
 
 const initialState: TasksState = {
   tasks: [],
   loading: false,
   error: null,
+  message: null,
 };
 
 // Async thunks
@@ -26,14 +28,14 @@ export const getTodos = createAsyncThunk('tasks/getTodos', async () => {
 
 export const addTodo = createAsyncThunk(
   'tasks/addTodo',
-  async (todo: Omit<Task, '_id'>) => {
+  async (todo: TodoCreate) => {
     return await createTodo(todo);
   }
 );
 
 export const editTodo = createAsyncThunk(
   'tasks/editTodo',
-  async ({ id, todo }: { id: string; todo: Partial<Omit<Task, '_id'>> }) => {
+  async ({ id, todo }: { id: string; todo: TodoUpdate }) => {
     return await updateTodo(id, todo);
   }
 );
@@ -66,7 +68,12 @@ const tasksSlice = createSlice({
       })
 
       .addCase(addTodo.fulfilled, (state, action) => {
-        state.tasks.push(action.payload);
+        if (!action.payload.data) {
+          state.error = action.payload.message || 'Failed to add task';
+        }
+
+        state.tasks.push(action.payload.data);
+        state.message = action.payload.message;
       })
 
       .addCase(editTodo.fulfilled, (state, action) => {
@@ -85,5 +92,3 @@ const tasksSlice = createSlice({
 });
 
 export default tasksSlice.reducer;
-
-// export const { addTask, updateTask, deleteTask } = tasksSlice.actions;
