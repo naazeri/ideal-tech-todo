@@ -5,15 +5,17 @@ type CustomChipOptions = {
   label: string;
   badgeNumber: number | string;
   disabled?: boolean;
+  onClick?: () => void;
 };
 
-function CustomChip({
+function IChip({
   label,
   badgeNumber,
   disabled = false,
+  onClick,
 }: CustomChipOptions) {
   return (
-    <Box display="flex" alignItems="center" gap={1}>
+    <Box display="flex" alignItems="center" gap={1} onClick={onClick}>
       <Typography
         fontSize={14}
         fontWeight={600}
@@ -42,4 +44,4 @@ function CustomChip({
   );
 }
 
-export default CustomChip;
+export default IChip;

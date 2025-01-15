@@ -6,6 +6,12 @@ const theme = createTheme({
     primary: {
       main: '#0760FB',
     },
+    text: {
+      disabled: '#9F9F9F',
+    },
+    background: {
+      default: '#F9F9F9',
+    },
   },
   typography: {
     fontFamily: 'Poppins, Arial, sans-serif',

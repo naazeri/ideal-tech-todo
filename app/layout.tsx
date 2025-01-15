@@ -5,6 +5,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import { Poppins } from 'next/font/google';
 import theme from './theme/theme';
 import { Providers } from './store/providers';
+import { CssBaseline } from '@mui/material';
 
 const poppins = Poppins({
   subsets: ['latin'], // Specify subsets (e.g., latin)
@@ -26,7 +27,10 @@ export default function RootLayout({
       <body className={`${poppins.className}`}>
         <Providers>
           <AppRouterCacheProvider>
-            <ThemeProvider theme={theme}>{children}</ThemeProvider>
+            <ThemeProvider theme={theme}>
+              <CssBaseline />
+              {children}
+            </ThemeProvider>
           </AppRouterCacheProvider>
         </Providers>
       </body>

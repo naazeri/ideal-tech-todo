@@ -1,10 +1,15 @@
 'use client';
 
-import { ChangeEvent, SyntheticEvent, useEffect, useState } from 'react';
+import {
+  ChangeEvent,
+  SyntheticEvent,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {
   Box,
   Button,
-  Chip,
   List,
   ListItem,
   Tab,
@@ -19,24 +24,75 @@ import {
   TextField,
   Alert,
   Snackbar,
-  Avatar,
+  Divider,
 } from '@mui/material';
 import { CheckCircle, RadioButtonUnchecked, Add } from '@mui/icons-material';
+import { isSameDay, addDays } from 'date-fns';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
 import { getTodos, addTodo, editTodo, removeTodo } from '../store/tasksSlice';
-import CustomChip from './CustomChip';
+import IChip from './IChip';
+import Todo, { TodoCreate } from '../model/todo';
 
 const TaskApp = () => {
   const dispatch: AppDispatch = useDispatch();
   const { tasks, loading, error, message } = useSelector(
     (state: RootState) => state.tasks
   );
+  console.log(`TaskApp ~ loading: ${loading}, tasks:`, tasks);
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [tab, setTab] = useState(0);
+  const [activeFilter, setActiveFilter] = useState<string>(taskFilters.all);
   const [modalOpen, setModalOpen] = useState(false);
-  const [newTask, setNewTask] = useState(emptyTask);
+  const [newTask, setNewTask] = useState<TodoCreate>(emptyTask);
+
+  const categorizedTasks = useMemo(() => {
+    return tasks.reduce(
+      (acc, task) => {
+        const taskDate = new Date(task.start_date);
+        const now = new Date();
+
+        // Categorize tasks
+        if (task.is_archived) {
+          acc.archivedTasks.push(task);
+        } else if (task.is_completed) {
+          acc.closedTasks.push(task);
+        } else {
+          acc.openTasks.push(task);
+        }
+
+        // Check if the task is for today
+        if (isSameDay(taskDate, now)) {
+          acc.todayTasks.push(task);
+        }
+
+        // Check if the task is for tomorrow
+        const tomorrow = addDays(now, 1);
+        if (isSameDay(taskDate, tomorrow)) {
+          acc.tomorrowTasks.push(task);
+        }
+
+        return acc;
+      },
+      {
+        openTasks: [],
+        closedTasks: [],
+        archivedTasks: [],
+        todayTasks: [],
+        tomorrowTasks: [],
+      } as {
+        openTasks: Todo[];
+        closedTasks: Todo[];
+        archivedTasks: Todo[];
+        todayTasks: Todo[];
+        tomorrowTasks: Todo[];
+      }
+    );
+  }, [tasks]);
+
+  const { openTasks, closedTasks, archivedTasks, todayTasks, tomorrowTasks } =
+    categorizedTasks;
 
   // Fetch tasks on component mount
   useEffect(() => {
@@ -62,6 +118,11 @@ const TaskApp = () => {
   // Handle tab change
   const handleTabChange = (event: SyntheticEvent, newValue: number) => {
     setTab(newValue);
+  };
+
+  // Handle filter change
+  const handleFilterChange = (filterName: string) => {
+    setActiveFilter(filterName);
   };
 
   // Handle task completion
@@ -103,7 +164,7 @@ const TaskApp = () => {
   };
 
   return (
-    <Box sx={{ width: '100%', p: 0, backgroundColor: '#f5f5f5' }}>
+    <Box sx={{ width: '100%', p: 2, mb: 10 }}>
       {/* Snackbar */}
       <Snackbar
         open={snackbarOpen}
@@ -161,11 +222,35 @@ const TaskApp = () => {
 
       {/* Filter Chips */}
       <Box display="flex" gap={2} mt={2}>
-        <CustomChip label="All" badgeNumber={35} />
-        <CustomChip label="All" badgeNumber={'14'} disabled />
-        <Chip label="Open" color="default" variant="outlined" />
-        <Chip label="Closed" color="default" variant="outlined" />
-        <Chip label="Archived" color="default" variant="outlined" />
+        <IChip
+          label={taskFilters.all}
+          badgeNumber={tasks.length}
+          disabled={activeFilter !== taskFilters.all}
+          onClick={() => handleFilterChange(taskFilters.all)}
+        />
+        <Divider
+          orientation="vertical"
+          flexItem
+          sx={{ backgroundColor: '#9F9F9F' }}
+        />
+        <IChip
+          label={taskFilters.open}
+          badgeNumber={openTasks.length}
+          disabled={activeFilter !== taskFilters.open}
+          onClick={() => handleFilterChange(taskFilters.open)}
+        />
+        <IChip
+          label={taskFilters.closed}
+          badgeNumber={closedTasks.length}
+          disabled={activeFilter !== taskFilters.closed}
+          onClick={() => handleFilterChange(taskFilters.closed)}
+        />
+        <IChip
+          label={taskFilters.archived}
+          badgeNumber={archivedTasks.length}
+          disabled={activeFilter !== taskFilters.archived}
+          onClick={() => handleFilterChange(taskFilters.archived)}
+        />
       </Box>
 
       {/* Task List */}
@@ -304,6 +389,17 @@ const TaskApp = () => {
   );
 };
 
-const emptyTask = { title: '', description: '', start_date: '', end_date: '' };
+const emptyTask: TodoCreate = {
+  title: '',
+  description: '',
+  start_date: '',
+  end_date: '',
+};
+const taskFilters = {
+  all: 'All',
+  open: 'Open',
+  closed: 'Closed',
+  archived: 'Archived',
+};
 
 export default TaskApp;

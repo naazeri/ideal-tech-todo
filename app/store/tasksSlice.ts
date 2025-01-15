@@ -23,7 +23,8 @@ const initialState: TasksState = {
 
 // Async thunks
 export const getTodos = createAsyncThunk('tasks/getTodos', async () => {
-  return await fetchTodos();
+  const result = await fetchTodos();
+  return result.map((todo: Todo) => ({ ...todo, is_archived: false })); // TODO: is_archived must read from localstorage
 });
 
 export const addTodo = createAsyncThunk(
@@ -64,7 +65,11 @@ const tasksSlice = createSlice({
       })
       .addCase(getTodos.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Failed to fetch tasks';
+        if (action.error.message?.startsWith('timeout')) {
+          state.error = 'Failed to fetch tasks(timeout)';
+        } else {
+          state.error = action.error.message || 'Failed to fetch tasks';
+        }
       })
 
       .addCase(addTodo.fulfilled, (state, action) => {
