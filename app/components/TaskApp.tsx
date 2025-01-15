@@ -27,7 +27,7 @@ import {
   Divider,
 } from '@mui/material';
 import { CheckCircle, RadioButtonUnchecked, Add } from '@mui/icons-material';
-import { isSameDay, addDays, startOfDay, isBefore } from 'date-fns';
+import { isSameDay, addDays, startOfDay, isBefore, format } from 'date-fns';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
 import { getTodos, addTodo, editTodo, removeTodo } from '../store/tasksSlice';
@@ -56,24 +56,25 @@ const TaskApp = () => {
       archivedTasksLength: 0,
     };
     const dateFilter = tab === 0 ? new Date() : addDays(new Date(), 1); // today or tomorrow
+    console.log('🎉 ~ categorizedTasks ~ dateFilter:', dateFilter);
 
     // filter tasks by date(today or tomorrow)
     const dateFilteredTasks = tasks.filter((task) =>
       isSameDay(new Date(task.start_date), dateFilter)
     );
+    console.log(
+      '🤣 ~ categorizedTasks ~ dateFilteredTasks:',
+      dateFilteredTasks
+    );
 
     // filter tasks
     const openTasks = dateFilteredTasks.filter((task) => !task.is_completed);
     const closedTasks = dateFilteredTasks.filter((task) => task.is_completed);
-    const archivedTasks = dateFilteredTasks.filter((task) =>
-      isBefore(new Date(task.end_date), startOfDay(new Date()))
-    ); // TODO: ask logic
 
     // set filtered tasks length
     result.allTasksLength = dateFilteredTasks.length;
     result.openTasksLength = openTasks.length;
     result.closedTasksLength = closedTasks.length;
-    result.archivedTasksLength = archivedTasks.length;
 
     // filter tasks by activeFilter
     switch (activeFilter) {
@@ -84,7 +85,7 @@ const TaskApp = () => {
         result.filteredTasks = closedTasks;
         break;
       case taskFilters.archived:
-        result.filteredTasks = archivedTasks;
+        // don't need to implement archived tasks
         break;
       default:
         result.filteredTasks = dateFilteredTasks;
@@ -164,7 +165,7 @@ const TaskApp = () => {
   };
 
   return (
-    <Box sx={{ width: '100%', p: 2, mb: 10 }}>
+    <Box sx={{ width: '100%', p: 2 }}>
       {/* Snackbar */}
       <Snackbar
         open={snackbarOpen}
@@ -231,7 +232,7 @@ const TaskApp = () => {
         <Divider
           orientation="vertical"
           flexItem
-          sx={{ backgroundColor: '#9F9F9F' }}
+          sx={{ backgroundColor: 'text.disabled' }}
         />
         <IChip
           label={taskFilters.open}
@@ -254,7 +255,7 @@ const TaskApp = () => {
       </Box>
 
       {/* Task List */}
-      <Box sx={{ mt: 3, backgroundColor: '#ffffff', borderRadius: 2, p: 2 }}>
+      <Box sx={{ mt: 3, mb: 10, p: 2 }}>
         {loading && (
           <Box display="flex" justifyContent="center" py={5}>
             <CircularProgress />
@@ -273,7 +274,13 @@ const TaskApp = () => {
           </Typography>
         )}
 
-        <List>
+        <List
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+          }}
+        >
           {categorizedTasks.filteredTasks?.map((task) => (
             <ListItem
               key={task._id}
@@ -281,30 +288,28 @@ const TaskApp = () => {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                borderBottom: '1px solid #e0e0e0',
-                py: 1.5,
-                '&:last-child': { borderBottom: 'none' },
+                backgroundColor: '#ffffff',
+                borderRadius: '15px',
+                py: 2,
               }}
             >
-              <Box>
+              <Box display="flex" flexDirection="column">
                 <Typography
                   variant="body1"
-                  fontWeight="bold"
                   sx={{
                     textDecoration: task.is_completed ? 'line-through' : 'none',
                   }}
                 >
                   {task.title}
                 </Typography>
-                <Typography variant="body2" color="textSecondary">
+                <Typography variant="body2" color="textDisabled">
                   {task.description}
                 </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  {`${new Date(
-                    task.start_date
-                  ).toLocaleTimeString()} - ${new Date(
-                    task.end_date
-                  ).toLocaleTimeString()}`}
+                <Typography variant="body2" color="textDisabled">
+                  {`${tab === 0 ? 'Today' : 'Tomorrow'} ${format(
+                    new Date(task.start_date),
+                    'hh:mm a'
+                  )} - ${format(new Date(task.end_date), 'hh:mm a')}`}
                 </Typography>
               </Box>
               <Box display="flex" alignItems="center" gap={1}>

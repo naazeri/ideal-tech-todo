@@ -15,6 +15,14 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: 'Poppins, Arial, sans-serif',
+    body1: {
+      fontWeight: 500,
+      color: '#000000',
+    },
+    body2: {
+      fontSize: '12px',
+      fontWeight: 500,
+    },
   },
   // cssVariables: true,
 });
