@@ -255,7 +255,7 @@ const TaskApp = () => {
       </Box>
 
       {/* Task List */}
-      <Box sx={{ mt: 3, mb: 10, p: 2 }}>
+      <Box sx={{ mt: 5, mb: 8, p: 0 }}>
         {loading && (
           <Box display="flex" justifyContent="center" py={5}>
             <CircularProgress />
@@ -293,42 +293,60 @@ const TaskApp = () => {
                 py: 2,
               }}
             >
-              <Box display="flex" flexDirection="column">
-                <Typography
-                  variant="body1"
+              <Box display="flex" flexDirection="column" gap={1} width="100%">
+                <Box
+                  display="flex"
+                  flexDirection="row"
+                  justifyContent="space-between"
+                >
+                  <Box display="flex" flexDirection="column">
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        textDecoration: task.is_completed
+                          ? 'line-through'
+                          : 'none',
+                      }}
+                    >
+                      {task.title}
+                    </Typography>
+                    <Typography variant="body2" color="textDisabled">
+                      {task.description}
+                    </Typography>
+                  </Box>
+                  <Checkbox
+                    icon={<RadioButtonUnchecked color="disabled" />}
+                    checkedIcon={<CheckCircle color="primary" />}
+                    checked={task.is_completed}
+                    onChange={(e) =>
+                      handleTaskCompletion(task._id, e.target.checked)
+                    }
+                  />
+                </Box>
+                <Divider
+                  orientation="horizontal"
                   sx={{
-                    textDecoration: task.is_completed ? 'line-through' : 'none',
+                    borderColor: '#D9D9D9',
+                    width: '100%',
+                    my: 1,
                   }}
-                >
-                  {task.title}
-                </Typography>
-                <Typography variant="body2" color="textDisabled">
-                  {task.description}
-                </Typography>
-                <Typography variant="body2" color="textDisabled">
-                  {`${tab === 0 ? 'Today' : 'Tomorrow'} ${format(
-                    new Date(task.start_date),
-                    'hh:mm a'
-                  )} - ${format(new Date(task.end_date), 'hh:mm a')}`}
-                </Typography>
-              </Box>
-              <Box display="flex" alignItems="center" gap={1}>
-                <Checkbox
-                  icon={<RadioButtonUnchecked color="disabled" />}
-                  checkedIcon={<CheckCircle color="primary" />}
-                  checked={task.is_completed}
-                  onChange={(e) =>
-                    handleTaskCompletion(task._id, e.target.checked)
-                  }
                 />
-                <Button
-                  variant="outlined"
-                  color="error"
-                  size="small"
-                  onClick={() => handleTaskDeletion(task._id)}
+                <Box
+                  display="flex"
+                  flexDirection="row"
+                  justifyContent="start"
+                  gap={1}
                 >
-                  Delete
-                </Button>
+                  <Typography variant="body2" color="textDisabled">
+                    {`${tab === 0 ? 'Today' : 'Tomorrow'}`}
+                  </Typography>
+                  <Typography variant="body2" color="#BFBFBF">
+                    {`${format(
+                      new Date(task.start_date),
+                      'hh:mm a'
+                    )} - ${format(new Date(task.end_date), 'hh:mm a')}`}
+                  </Typography>
+                </Box>
               </Box>
             </ListItem>
           ))}
@@ -365,6 +383,11 @@ const TaskApp = () => {
               onChange={handleInputChange}
               fullWidth
               required
+              slotProps={{
+                inputLabel: {
+                  shrink: true,
+                },
+              }}
             />
             <TextField
               label="End Date"
@@ -374,11 +397,16 @@ const TaskApp = () => {
               onChange={handleInputChange}
               fullWidth
               required
+              slotProps={{
+                inputLabel: {
+                  shrink: true,
+                },
+              }}
             />
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={closeModal} color="secondary">
+        <DialogActions sx={{ pr: 3 }}>
+          <Button onClick={closeModal} color="inherit">
             Cancel
           </Button>
           <Button
@@ -386,7 +414,7 @@ const TaskApp = () => {
             color="primary"
             variant="contained"
           >
-            Add Task
+            + Add Task
           </Button>
         </DialogActions>
       </Dialog>
