@@ -24,7 +24,7 @@ const initialState: TasksState = {
 // Async thunks
 export const getTodos = createAsyncThunk('tasks/getTodos', async () => {
   const result = await fetchTodos();
-  return result.map((todo: Todo) => ({ ...todo, is_archived: false })); // TODO: is_archived must read from localstorage
+  return result.map((todo: Todo) => ({ ...todo }));
 });
 
 export const addTodo = createAsyncThunk(

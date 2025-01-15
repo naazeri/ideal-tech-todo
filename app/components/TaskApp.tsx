@@ -27,7 +27,7 @@ import {
   Divider,
 } from '@mui/material';
 import { CheckCircle, RadioButtonUnchecked, Add } from '@mui/icons-material';
-import { isSameDay, addDays } from 'date-fns';
+import { isSameDay, addDays, startOfDay, isBefore } from 'date-fns';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
 import { getTodos, addTodo, editTodo, removeTodo } from '../store/tasksSlice';
@@ -48,51 +48,51 @@ const TaskApp = () => {
   const [newTask, setNewTask] = useState<TodoCreate>(emptyTask);
 
   const categorizedTasks = useMemo(() => {
-    return tasks.reduce(
-      (acc, task) => {
-        const taskDate = new Date(task.start_date);
-        const now = new Date();
+    const result: CategorizedTasksType = {
+      filteredTasks: [],
+      allTasksLength: 0,
+      openTasksLength: 0,
+      closedTasksLength: 0,
+      archivedTasksLength: 0,
+    };
+    const dateFilter = tab === 0 ? new Date() : addDays(new Date(), 1); // today or tomorrow
 
-        // Categorize tasks
-        if (task.is_archived) {
-          acc.archivedTasks.push(task);
-        } else if (task.is_completed) {
-          acc.closedTasks.push(task);
-        } else {
-          acc.openTasks.push(task);
-        }
-
-        // Check if the task is for today
-        if (isSameDay(taskDate, now)) {
-          acc.todayTasks.push(task);
-        }
-
-        // Check if the task is for tomorrow
-        const tomorrow = addDays(now, 1);
-        if (isSameDay(taskDate, tomorrow)) {
-          acc.tomorrowTasks.push(task);
-        }
-
-        return acc;
-      },
-      {
-        openTasks: [],
-        closedTasks: [],
-        archivedTasks: [],
-        todayTasks: [],
-        tomorrowTasks: [],
-      } as {
-        openTasks: Todo[];
-        closedTasks: Todo[];
-        archivedTasks: Todo[];
-        todayTasks: Todo[];
-        tomorrowTasks: Todo[];
-      }
+    // filter tasks by date(today or tomorrow)
+    const dateFilteredTasks = tasks.filter((task) =>
+      isSameDay(new Date(task.start_date), dateFilter)
     );
-  }, [tasks]);
 
-  const { openTasks, closedTasks, archivedTasks, todayTasks, tomorrowTasks } =
-    categorizedTasks;
+    // filter tasks
+    const openTasks = dateFilteredTasks.filter((task) => !task.is_completed);
+    const closedTasks = dateFilteredTasks.filter((task) => task.is_completed);
+    const archivedTasks = dateFilteredTasks.filter((task) =>
+      isBefore(new Date(task.end_date), startOfDay(new Date()))
+    ); // TODO: ask logic
+
+    // set filtered tasks length
+    result.allTasksLength = dateFilteredTasks.length;
+    result.openTasksLength = openTasks.length;
+    result.closedTasksLength = closedTasks.length;
+    result.archivedTasksLength = archivedTasks.length;
+
+    // filter tasks by activeFilter
+    switch (activeFilter) {
+      case taskFilters.open:
+        result.filteredTasks = openTasks;
+        break;
+      case taskFilters.closed:
+        result.filteredTasks = closedTasks;
+        break;
+      case taskFilters.archived:
+        result.filteredTasks = archivedTasks;
+        break;
+      default:
+        result.filteredTasks = dateFilteredTasks;
+        break;
+    }
+
+    return result;
+  }, [tab, tasks, activeFilter]);
 
   // Fetch tasks on component mount
   useEffect(() => {
@@ -224,7 +224,7 @@ const TaskApp = () => {
       <Box display="flex" gap={2} mt={2}>
         <IChip
           label={taskFilters.all}
-          badgeNumber={tasks.length}
+          badgeNumber={categorizedTasks.allTasksLength}
           disabled={activeFilter !== taskFilters.all}
           onClick={() => handleFilterChange(taskFilters.all)}
         />
@@ -235,19 +235,19 @@ const TaskApp = () => {
         />
         <IChip
           label={taskFilters.open}
-          badgeNumber={openTasks.length}
+          badgeNumber={categorizedTasks.openTasksLength}
           disabled={activeFilter !== taskFilters.open}
           onClick={() => handleFilterChange(taskFilters.open)}
         />
         <IChip
           label={taskFilters.closed}
-          badgeNumber={closedTasks.length}
+          badgeNumber={categorizedTasks.closedTasksLength}
           disabled={activeFilter !== taskFilters.closed}
           onClick={() => handleFilterChange(taskFilters.closed)}
         />
         <IChip
           label={taskFilters.archived}
-          badgeNumber={archivedTasks.length}
+          badgeNumber={categorizedTasks.archivedTasksLength}
           disabled={activeFilter !== taskFilters.archived}
           onClick={() => handleFilterChange(taskFilters.archived)}
         />
@@ -267,14 +267,14 @@ const TaskApp = () => {
           </Typography>
         )}
 
-        {!loading && tasks.length === 0 && (
+        {!loading && categorizedTasks.filteredTasks?.length === 0 && (
           <Typography textAlign="center" color="textSecondary">
             No tasks available.
           </Typography>
         )}
 
         <List>
-          {tasks.map((task) => (
+          {categorizedTasks.filteredTasks?.map((task) => (
             <ListItem
               key={task._id}
               sx={{
@@ -400,6 +400,13 @@ const taskFilters = {
   open: 'Open',
   closed: 'Closed',
   archived: 'Archived',
+};
+type CategorizedTasksType = {
+  filteredTasks: Todo[];
+  allTasksLength: number;
+  openTasksLength: number;
+  closedTasksLength: number;
+  archivedTasksLength: number;
 };
 
 export default TaskApp;
