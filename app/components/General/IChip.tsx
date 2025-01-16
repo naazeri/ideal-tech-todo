@@ -1,19 +1,19 @@
 import { Box, Chip, Typography } from '@mui/material';
 import React from 'react';
 
-type CustomChipOptions = {
+type CustomChipProps = {
   label: string;
   badgeNumber: number | string;
   disabled?: boolean;
   onClick?: () => void;
 };
 
-function IChip({
+const IChip = ({
   label,
   badgeNumber,
   disabled = false,
   onClick,
-}: CustomChipOptions) {
+}: CustomChipProps) => {
   return (
     <Box
       display="flex"
@@ -52,6 +52,6 @@ function IChip({
       />
     </Box>
   );
-}
+};
 
 export default IChip;

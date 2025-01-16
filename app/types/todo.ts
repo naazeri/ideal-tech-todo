@@ -10,6 +10,14 @@ export default interface Todo {
 export type TodoCreate = Omit<Todo, '_id' | 'is_completed'>;
 export type TodoUpdate = Partial<Omit<Todo, '_id'>>;
 
+export type CategorizedTasksType = {
+  filteredTasks: Todo[];
+  allTasksLength: number;
+  openTasksLength: number;
+  closedTasksLength: number;
+  archivedTasksLength: number;
+};
+
 // type FilteredTodos = {
 //   activeFilterTasks?: Todo[];
 //   openTasks: Todo[];

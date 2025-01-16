@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import Todo, { TodoCreate, TodoUpdate } from '../model/todo';
+import Todo, { TodoCreate, TodoUpdate } from '../types/todo';
 import {
   createTodo,
   deleteTodo,
@@ -55,43 +55,55 @@ const tasksSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(getTodos.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
+      // Fetch Todos
       .addCase(getTodos.fulfilled, (state, action) => {
         state.loading = false;
         state.tasks = action.payload;
       })
+      .addCase(getTodos.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(getTodos.rejected, (state, action) => {
         state.loading = false;
-        if (action.error.message?.startsWith('timeout')) {
-          state.error = 'Failed to fetch tasks(timeout)';
-        } else {
-          state.error = action.error.message || 'Failed to fetch tasks';
-        }
+        state.error = action.error.message || 'Failed to add task';
       })
 
+      // Add Todo
       .addCase(addTodo.fulfilled, (state, action) => {
         if (!action.payload.data) {
           state.error = action.payload.message || 'Failed to add task';
         }
 
-        state.tasks.push(action.payload.data);
+        state.tasks.unshift(action.payload.data);
         state.message = action.payload.message;
       })
+      .addCase(addTodo.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to add task';
+      })
 
+      // Edit Todo
       .addCase(editTodo.fulfilled, (state, action) => {
         const index = state.tasks.findIndex(
           (task) => task._id === action.payload._id
         );
         if (index !== -1) state.tasks[index] = action.payload;
       })
+      .addCase(editTodo.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to edit task';
+      })
 
+      // Remove Todo
       .addCase(removeTodo.fulfilled, (state, action) => {
         state.tasks = state.tasks.filter(
           (task) => task._id !== action.meta.arg
         );
+      })
+      .addCase(removeTodo.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to remove task';
       });
   },
 });

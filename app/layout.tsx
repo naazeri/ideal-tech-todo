@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
+import './styles/global.css';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { ThemeProvider } from '@mui/material/styles';
 import { Poppins } from 'next/font/google';
-import theme from './theme/theme';
-import { Providers } from './store/providers';
+import theme from './styles/theme';
+import { StoreProvider } from './store/StoreProvider';
 import { CssBaseline } from '@mui/material';
 
 const poppins = Poppins({
@@ -24,14 +25,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${poppins.className}`}>
-        <Providers>
+        <StoreProvider>
           <AppRouterCacheProvider>
             <ThemeProvider theme={theme}>
               <CssBaseline />
               {children}
             </ThemeProvider>
           </AppRouterCacheProvider>
-        </Providers>
+        </StoreProvider>
       </body>
     </html>
   );

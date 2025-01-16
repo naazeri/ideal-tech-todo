@@ -1,7 +1,5 @@
-'use client';
-
 import { Container } from '@mui/material';
-import TaskApp from './components/TaskApp';
+import TaskApp from './components/TaskApp/TaskApp';
 
 export default function Home() {
   return (
