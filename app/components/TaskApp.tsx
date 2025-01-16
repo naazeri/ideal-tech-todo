@@ -5,6 +5,7 @@ import {
   SyntheticEvent,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import {
@@ -26,7 +27,12 @@ import {
   Snackbar,
   Divider,
 } from '@mui/material';
-import { CheckCircle, RadioButtonUnchecked, Add } from '@mui/icons-material';
+import {
+  CheckCircle,
+  RadioButtonUnchecked,
+  Add,
+  Delete,
+} from '@mui/icons-material';
 import { isSameDay, addDays, startOfDay, isBefore, format } from 'date-fns';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
@@ -39,15 +45,16 @@ const TaskApp = () => {
   const { tasks, loading, error, message } = useSelector(
     (state: RootState) => state.tasks
   );
-  console.log(`TaskApp ~ loading: ${loading}, tasks:`, tasks);
 
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [tab, setTab] = useState(0);
   const [activeFilter, setActiveFilter] = useState<string>(taskFilters.all);
-  const [modalOpen, setModalOpen] = useState(false);
+  const selectedTask = useRef<Todo | null>(null);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [newTaskModalOpen, setNewTaskModalOpen] = useState(false);
   const [newTask, setNewTask] = useState<TodoCreate>(emptyTask);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
-  const categorizedTasks = useMemo(() => {
+  const categorizedTasks: CategorizedTasksType = useMemo(() => {
     const result: CategorizedTasksType = {
       filteredTasks: [],
       allTasksLength: 0,
@@ -56,25 +63,24 @@ const TaskApp = () => {
       archivedTasksLength: 0,
     };
     const dateFilter = tab === 0 ? new Date() : addDays(new Date(), 1); // today or tomorrow
-    console.log('🎉 ~ categorizedTasks ~ dateFilter:', dateFilter);
 
     // filter tasks by date(today or tomorrow)
     const dateFilteredTasks = tasks.filter((task) =>
       isSameDay(new Date(task.start_date), dateFilter)
     );
-    console.log(
-      '🤣 ~ categorizedTasks ~ dateFilteredTasks:',
-      dateFilteredTasks
-    );
 
     // filter tasks
     const openTasks = dateFilteredTasks.filter((task) => !task.is_completed);
     const closedTasks = dateFilteredTasks.filter((task) => task.is_completed);
+    const archivedTasks = tasks.filter((task) =>
+      isBefore(new Date(task.end_date), startOfDay(new Date()))
+    ); // don't need to implement archived tasks
 
     // set filtered tasks length
     result.allTasksLength = dateFilteredTasks.length;
     result.openTasksLength = openTasks.length;
     result.closedTasksLength = closedTasks.length;
+    result.archivedTasksLength = archivedTasks.length;
 
     // filter tasks by activeFilter
     switch (activeFilter) {
@@ -85,7 +91,7 @@ const TaskApp = () => {
         result.filteredTasks = closedTasks;
         break;
       case taskFilters.archived:
-        // don't need to implement archived tasks
+        result.filteredTasks = archivedTasks;
         break;
       default:
         result.filteredTasks = dateFilteredTasks;
@@ -131,14 +137,34 @@ const TaskApp = () => {
     dispatch(editTodo({ id: taskId, todo: { is_completed: isCompleted } }));
   };
 
-  // Handle task deletion
+  // Open the details modal
+  const openDetailsModal = (task: Todo) => {
+    selectedTask.current = task;
+    setDetailsModalOpen(true);
+  };
+
+  // Close the details modal
+  const closeDetailsModal = () => {
+    setDetailsModalOpen(false);
+
+    setTimeout(() => {
+      selectedTask.current = null;
+    }, 300); // for smooth close transition, remove this line
+  };
+
+  // Handle task deletion from the details modal
   const handleTaskDeletion = (taskId: string) => {
     dispatch(removeTodo(taskId));
+    closeDetailsModal();
   };
 
   // Handle modal open/close
-  const openModal = () => setModalOpen(true);
-  const closeModal = () => setModalOpen(false);
+  const openModal = () => setNewTaskModalOpen(true);
+  const closeModal = () => {
+    // Reset form and close modal
+    setNewTask(emptyTask);
+    setNewTaskModalOpen(false);
+  };
 
   // Handle form field changes
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -159,13 +185,11 @@ const TaskApp = () => {
       })
     );
 
-    // Reset form and close modal
-    setNewTask(emptyTask);
     closeModal();
   };
 
   return (
-    <Box sx={{ width: '100%', p: 2 }}>
+    <Box sx={{ width: '100%' }}>
       {/* Snackbar */}
       <Snackbar
         open={snackbarOpen}
@@ -179,248 +203,360 @@ const TaskApp = () => {
       </Snackbar>
 
       {/* Tabs */}
-      <Tabs value={tab} onChange={handleTabChange} centered>
-        <Tab label="Today's Task" sx={{}} />
+      <Tabs
+        value={tab}
+        onChange={handleTabChange}
+        textColor="inherit"
+        variant="fullWidth"
+        sx={{
+          '& .MuiTabs-indicator': {
+            backgroundColor: '#000000',
+          },
+        }}
+      >
+        <Tab label="Today's Task" />
         <Tab label="Tomorrow's Task" />
       </Tabs>
 
-      {/* Header Section */}
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mt={3}
-      >
-        <Box>
-          <Typography variant="h6" fontWeight="bold">
-            Today&#39;s Task
-          </Typography>
-          <Typography variant="subtitle2" color="textDisabled">
-            Wednesday, 11 May
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          size="small"
-          sx={{
-            textTransform: 'none',
-            backgroundColor: '#0760FB1A',
-            color: 'primary.main',
-            borderRadius: '10px',
-            fontSize: '14px',
-            padding: '8px 16px',
-            boxShadow: 'none',
-            '&:hover': {
-              backgroundColor: '#0760FB26',
-              boxShadow: 'none',
-            },
-          }}
-          onClick={openModal}
+      {/* Tab Content Section */}
+      <Box sx={{ px: 3 }}>
+        {/* Header Section */}
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mt={3}
         >
-          <Add sx={{ fontSize: '17px', marginRight: '8px' }} /> New Task
-        </Button>
-      </Box>
-
-      {/* Filter Chips */}
-      <Box display="flex" gap={2} mt={2}>
-        <IChip
-          label={taskFilters.all}
-          badgeNumber={categorizedTasks.allTasksLength}
-          disabled={activeFilter !== taskFilters.all}
-          onClick={() => handleFilterChange(taskFilters.all)}
-        />
-        <Divider
-          orientation="vertical"
-          flexItem
-          sx={{ backgroundColor: 'text.disabled' }}
-        />
-        <IChip
-          label={taskFilters.open}
-          badgeNumber={categorizedTasks.openTasksLength}
-          disabled={activeFilter !== taskFilters.open}
-          onClick={() => handleFilterChange(taskFilters.open)}
-        />
-        <IChip
-          label={taskFilters.closed}
-          badgeNumber={categorizedTasks.closedTasksLength}
-          disabled={activeFilter !== taskFilters.closed}
-          onClick={() => handleFilterChange(taskFilters.closed)}
-        />
-        <IChip
-          label={taskFilters.archived}
-          badgeNumber={categorizedTasks.archivedTasksLength}
-          disabled={activeFilter !== taskFilters.archived}
-          onClick={() => handleFilterChange(taskFilters.archived)}
-        />
-      </Box>
-
-      {/* Task List */}
-      <Box sx={{ mt: 5, mb: 8, p: 0 }}>
-        {loading && (
-          <Box display="flex" justifyContent="center" py={5}>
-            <CircularProgress />
+          <Box>
+            <Typography variant="h6" fontWeight="bold">
+              {tab === 0 ? "Today's" : "Tomorrow's"} Task
+            </Typography>
+            <Typography variant="subtitle2" color="textDisabled">
+              {/* show current date like: Wednesday , 11 May */}
+              {format(
+                tab === 0 ? new Date() : addDays(new Date(), 1),
+                'EEEE , dd MMMM'
+              )}
+            </Typography>
           </Box>
-        )}
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<Add />}
+            sx={{
+              textTransform: 'none',
+              backgroundColor: '#0760FB1A',
+              color: 'primary.main',
+              borderRadius: '10px',
+              fontSize: '14px',
+              padding: '8px 16px',
+              boxShadow: 'none',
+              '&:hover': {
+                backgroundColor: '#0760FB26',
+                boxShadow: 'none',
+              },
+            }}
+            onClick={openModal}
+          >
+            New Task
+          </Button>
+        </Box>
 
-        {error && (
-          <Typography color="error" textAlign="center">
-            {error}
-          </Typography>
-        )}
+        {/* Filter Chips */}
+        <Box display="flex" gap={2} mt={2}>
+          <IChip
+            label={taskFilters.all}
+            badgeNumber={categorizedTasks.allTasksLength}
+            disabled={activeFilter !== taskFilters.all}
+            onClick={() => handleFilterChange(taskFilters.all)}
+          />
+          <Divider
+            orientation="vertical"
+            flexItem
+            sx={{ backgroundColor: 'text.disabled' }}
+          />
+          <IChip
+            label={taskFilters.open}
+            badgeNumber={categorizedTasks.openTasksLength}
+            disabled={activeFilter !== taskFilters.open}
+            onClick={() => handleFilterChange(taskFilters.open)}
+          />
+          <IChip
+            label={taskFilters.closed}
+            badgeNumber={categorizedTasks.closedTasksLength}
+            disabled={activeFilter !== taskFilters.closed}
+            onClick={() => handleFilterChange(taskFilters.closed)}
+          />
+          <IChip
+            label={taskFilters.archived}
+            badgeNumber={categorizedTasks.archivedTasksLength}
+            disabled={activeFilter !== taskFilters.archived}
+            onClick={() => handleFilterChange(taskFilters.archived)}
+          />
+        </Box>
 
-        {!loading && categorizedTasks.filteredTasks?.length === 0 && (
-          <Typography textAlign="center" color="textSecondary">
-            No tasks available.
-          </Typography>
-        )}
+        {/* Task List */}
+        <Box sx={{ mt: 5, mb: 8, p: 0 }}>
+          {loading && (
+            <Box display="flex" justifyContent="center" py={5}>
+              <CircularProgress />
+            </Box>
+          )}
 
-        <List
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2,
-          }}
-        >
-          {categorizedTasks.filteredTasks?.map((task) => (
-            <ListItem
-              key={task._id}
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                backgroundColor: '#ffffff',
-                borderRadius: '15px',
-                py: 2,
-              }}
-            >
-              <Box display="flex" flexDirection="column" gap={1} width="100%">
-                <Box
-                  display="flex"
-                  flexDirection="row"
-                  justifyContent="space-between"
-                >
-                  <Box display="flex" flexDirection="column">
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        textDecoration: task.is_completed
-                          ? 'line-through'
-                          : 'none',
-                      }}
-                    >
-                      {task.title}
-                    </Typography>
-                    <Typography variant="body2" color="textDisabled">
-                      {task.description}
-                    </Typography>
+          {error && (
+            <Typography color="error" textAlign="center">
+              {error}
+            </Typography>
+          )}
+
+          {!loading && categorizedTasks.filteredTasks?.length === 0 && (
+            <Typography textAlign="center" color="textSecondary">
+              No tasks available.
+            </Typography>
+          )}
+
+          <List
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+            }}
+          >
+            {categorizedTasks.filteredTasks?.map((task) => (
+              <ListItem
+                key={task._id}
+                onClick={() => openDetailsModal(task)}
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  backgroundColor: '#ffffff',
+                  borderRadius: '15px',
+                  py: 2,
+                  cursor: 'pointer',
+                }}
+              >
+                <Box display="flex" flexDirection="column" gap={1} width="100%">
+                  <Box
+                    display="flex"
+                    flexDirection="row"
+                    justifyContent="space-between"
+                  >
+                    <Box display="flex" flexDirection="column">
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          textDecoration: task.is_completed
+                            ? 'line-through'
+                            : 'none',
+                        }}
+                      >
+                        {task.title}
+                      </Typography>
+                      <Typography variant="body2" color="textDisabled">
+                        {task.description}
+                      </Typography>
+                    </Box>
+                    <Checkbox
+                      icon={<RadioButtonUnchecked color="disabled" />}
+                      checkedIcon={<CheckCircle color="primary" />}
+                      checked={task.is_completed}
+                      onClick={(e) => e.stopPropagation()} // Prevent ListItem click
+                      onChange={(e) =>
+                        handleTaskCompletion(task._id, e.target.checked)
+                      }
+                    />
                   </Box>
-                  <Checkbox
-                    icon={<RadioButtonUnchecked color="disabled" />}
-                    checkedIcon={<CheckCircle color="primary" />}
-                    checked={task.is_completed}
-                    onChange={(e) =>
-                      handleTaskCompletion(task._id, e.target.checked)
-                    }
+                  <Divider
+                    orientation="horizontal"
+                    sx={{
+                      borderColor: '#D9D9D9',
+                      width: '100%',
+                      my: 1,
+                    }}
+                  />
+                  <TaskTime
+                    task={task}
+                    firstPartType="day"
+                    tab={tab}
+                    activeFilter={activeFilter}
                   />
                 </Box>
-                <Divider
-                  orientation="horizontal"
-                  sx={{
-                    borderColor: '#D9D9D9',
-                    width: '100%',
-                    my: 1,
-                  }}
-                />
-                <Box
-                  display="flex"
-                  flexDirection="row"
-                  justifyContent="start"
-                  gap={1}
-                >
-                  <Typography variant="body2" color="textDisabled">
-                    {`${tab === 0 ? 'Today' : 'Tomorrow'}`}
-                  </Typography>
-                  <Typography variant="body2" color="#BFBFBF">
-                    {`${format(
-                      new Date(task.start_date),
-                      'hh:mm a'
-                    )} - ${format(new Date(task.end_date), 'hh:mm a')}`}
-                  </Typography>
-                </Box>
-              </Box>
-            </ListItem>
-          ))}
-        </List>
-      </Box>
+              </ListItem>
+            ))}
+          </List>
+        </Box>
 
-      {/* Add New Task Modal */}
-      <Dialog open={modalOpen} onClose={closeModal}>
-        <DialogTitle>Add New Task</DialogTitle>
-        <DialogContent>
-          <Box display="flex" flexDirection="column" gap={2} mt={1}>
-            <TextField
-              label="Title"
-              name="title"
-              value={newTask.title}
-              onChange={handleInputChange}
-              fullWidth
-              required
-            />
-            <TextField
-              label="Description"
-              name="description"
-              value={newTask.description}
-              onChange={handleInputChange}
-              fullWidth
-              multiline
-              rows={3}
-            />
-            <TextField
-              label="Start Date"
-              name="start_date"
-              type="datetime-local"
-              value={newTask.start_date}
-              onChange={handleInputChange}
-              fullWidth
-              required
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-            />
-            <TextField
-              label="End Date"
-              name="end_date"
-              type="datetime-local"
-              value={newTask.end_date}
-              onChange={handleInputChange}
-              fullWidth
-              required
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ pr: 3 }}>
-          <Button onClick={closeModal} color="inherit">
-            Cancel
-          </Button>
-          <Button
-            onClick={handleTaskSubmission}
-            color="primary"
-            variant="contained"
+        {/* Task Details Modal */}
+        <Dialog
+          open={detailsModalOpen}
+          onClose={closeDetailsModal}
+          maxWidth="xs"
+        >
+          {selectedTask.current && (
+            <>
+              <DialogContent>
+                <Box display="flex" flexDirection="column" gap={1} m={1}>
+                  <Typography variant="h6">
+                    {selectedTask.current.title}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    {selectedTask.current.description}
+                  </Typography>
+                  <Divider
+                    orientation="horizontal"
+                    sx={{
+                      width: '100%',
+                      my: 1,
+                    }}
+                  />
+                  <TaskTime
+                    task={selectedTask.current}
+                    firstPartType="full_date"
+                  />
+                </Box>
+              </DialogContent>
+              <DialogActions
+                sx={{ display: 'flex', justifyContent: 'space-evenly' }}
+              >
+                <Button
+                  onClick={closeDetailsModal}
+                  variant="outlined"
+                  color="inherit"
+                >
+                  Close
+                </Button>
+                <Button
+                  startIcon={<Delete />}
+                  onClick={() =>
+                    selectedTask.current &&
+                    handleTaskDeletion(selectedTask.current._id)
+                  }
+                  color="error"
+                  variant="contained"
+                >
+                  Delete Task
+                </Button>
+              </DialogActions>
+            </>
+          )}
+        </Dialog>
+
+        {/* Add New Task Modal */}
+        <Dialog
+          open={newTaskModalOpen}
+          onClose={(event, reason) => {
+            if (reason !== 'backdropClick' && reason !== 'escapeKeyDown') {
+              closeModal();
+            }
+          }}
+        >
+          <DialogTitle>Add New Task</DialogTitle>
+          <DialogContent>
+            <Box display="flex" flexDirection="column" gap={2} mt={1}>
+              <TextField
+                label="Title"
+                name="title"
+                value={newTask.title}
+                onChange={handleInputChange}
+                fullWidth
+                required
+              />
+              <TextField
+                label="Description"
+                name="description"
+                value={newTask.description}
+                onChange={handleInputChange}
+                fullWidth
+                multiline
+                rows={3}
+              />
+              <TextField
+                label="Start Date"
+                name="start_date"
+                type="datetime-local"
+                value={newTask.start_date}
+                onChange={handleInputChange}
+                fullWidth
+                required
+                slotProps={{
+                  inputLabel: {
+                    shrink: true,
+                  },
+                }}
+              />
+              <TextField
+                label="End Date"
+                name="end_date"
+                type="datetime-local"
+                value={newTask.end_date}
+                onChange={handleInputChange}
+                fullWidth
+                required
+                slotProps={{
+                  inputLabel: {
+                    shrink: true,
+                  },
+                }}
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions
+            sx={{ display: 'flex', justifyContent: 'space-evenly' }}
           >
-            + Add Task
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <Button onClick={closeModal} variant="outlined" color="inherit">
+              Cancel
+            </Button>
+            <Button
+              startIcon={<Add />}
+              color="primary"
+              variant="contained"
+              onClick={handleTaskSubmission}
+            >
+              Add New Task
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
     </Box>
   );
 };
+
+function TaskTime({
+  task,
+  firstPartType = 'day',
+  tab,
+  activeFilter,
+}: {
+  task: Todo;
+  firstPartType: 'full_date' | 'day';
+  tab?: number;
+  activeFilter?: string;
+}) {
+  function getTaskDate(task: Todo): string {
+    if (activeFilter !== taskFilters.archived) {
+      return tab === 0 ? 'Today' : 'Tomorrow';
+    } else {
+      return task.start_date.split('T')[0];
+    }
+  }
+
+  return (
+    <Box display="flex" flexDirection="row" justifyContent="start" gap={1}>
+      <Typography variant="body2" color="textDisabled">
+        {firstPartType === 'day'
+          ? getTaskDate(task)
+          : format(new Date(task.end_date), 'PP')}
+      </Typography>
+      <Typography variant="body2" color="#BFBFBF">
+        {` ${format(new Date(task.start_date), 'hh:mm a')} - ${format(
+          new Date(task.end_date),
+          'hh:mm a'
+        )}`}
+      </Typography>
+    </Box>
+  );
+}
 
 const emptyTask: TodoCreate = {
   title: '',

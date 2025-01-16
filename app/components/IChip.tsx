@@ -15,7 +15,18 @@ function IChip({
   onClick,
 }: CustomChipOptions) {
   return (
-    <Box display="flex" alignItems="center" gap={1} onClick={onClick}>
+    <Box
+      display="flex"
+      alignItems="center"
+      gap={1}
+      onClick={onClick}
+      sx={{
+        cursor: 'pointer',
+        '&:hover': {
+          filter: 'brightness(0.85)',
+        },
+      }}
+    >
       <Typography
         fontSize={14}
         fontWeight={600}
@@ -34,7 +45,6 @@ function IChip({
           padding: 0,
           width: 'fit-content',
           height: 'fit-content',
-
           '& .MuiChip-label': {
             padding: '0px 4px',
           },

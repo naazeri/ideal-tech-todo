@@ -5,7 +5,7 @@ import TaskApp from './components/TaskApp';
 
 export default function Home() {
   return (
-    <Container maxWidth="sm">
+    <Container maxWidth="sm" sx={{ p: 0 }}>
       <TaskApp />
     </Container>
   );

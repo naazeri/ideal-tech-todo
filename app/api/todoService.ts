@@ -1,10 +1,16 @@
-import { TodoCreate, TodoUpdate } from '../model/todo';
+import { compareDesc, parseISO } from 'date-fns';
+import Todo, { TodoCreate, TodoUpdate } from '../model/todo';
 import axiosInstance from './axiosConfig';
 
 // Fetch all todos
 export const fetchTodos = async () => {
   const response = await axiosInstance.get('todos/fetch/all');
-  return response.data.data;
+  const todos: Todo[] = response.data.data;
+
+  // Sort todos by start_date
+  return todos.sort((a, b) =>
+    compareDesc(parseISO(a.start_date), parseISO(b.start_date))
+  );
 };
 
 // Create a new todo
