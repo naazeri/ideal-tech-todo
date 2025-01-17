@@ -19,7 +19,7 @@ interface UIState {
 
 const initialState: UIState = {
   tab: 0,
-  activeFilter: 'ALL',
+  activeFilter: TASK_FILTERS.ALL,
   selectedTask: null,
   detailsModalOpen: false,
   newTaskModalOpen: false,
