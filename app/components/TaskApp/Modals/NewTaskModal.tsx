@@ -48,6 +48,10 @@ const NewTaskModal = ({
   };
 
   const onSubmit = (data: TodoCreate) => {
+    // Convert start_date and end_date to ISO
+    data.start_date = new Date(data.start_date).toISOString();
+    data.end_date = new Date(data.end_date).toISOString();
+
     onTaskSubmission(data); // Submit form data
     handleCloseModal(); // Close the modal
   };

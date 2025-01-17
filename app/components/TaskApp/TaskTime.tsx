@@ -1,6 +1,6 @@
 import { Box, Typography } from '@mui/material';
 import { format } from 'date-fns';
-import Todo from '@/app/types/todo';
+import { Todo } from '@/app/types/todo';
 
 interface TaskTimeProps {
   task: Todo;

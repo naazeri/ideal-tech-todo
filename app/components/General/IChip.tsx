@@ -1,5 +1,4 @@
 import { Box, Chip, Typography } from '@mui/material';
-import React from 'react';
 
 type CustomChipProps = {
   label: string;

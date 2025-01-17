@@ -1,4 +1,4 @@
-import Todo from '@/app/types/todo';
+import { Todo } from '@/app/types/todo';
 import { Delete } from '@mui/icons-material';
 import {
   Dialog,

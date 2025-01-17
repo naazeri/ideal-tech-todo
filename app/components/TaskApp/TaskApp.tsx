@@ -1,16 +1,7 @@
 'use client';
-
 import { SyntheticEvent, useEffect, useMemo, useState } from 'react';
 import { isSameDay, addDays, startOfDay, isBefore } from 'date-fns';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState, AppDispatch } from '../../store/store';
-import {
-  getTodos,
-  addTodo,
-  editTodo,
-  removeTodo,
-} from '../../store/tasksSlice';
-import Todo, { CategorizedTasksType, TodoCreate } from '../../types/todo';
+import { Todo, CategorizedTasksType, TodoCreate } from '../../types/todo';
 import ISnackbar from '../General/ISnackbar';
 import { TASK_FILTERS } from '@/app/constants/constants';
 import TaskTabs from './TaskTabs';
@@ -21,13 +12,19 @@ import TaskHeader from './TaskHeader';
 import TaskDetailsModal from './Modals/TaskDetailsModal';
 import TaskRootContainer from './TaskRootContainer';
 import TaskTabContainer from './TaskTabContainer';
+import {
+  useFetchTodosQuery,
+  useCreateTodoMutation,
+  useDeleteTodoMutation,
+  useUpdateTodoMutation,
+} from '@/app/store/tasksApiSlice';
 
 const TaskApp = () => {
-  // Redux state
-  const { tasks, loading, error, message } = useSelector(
-    (state: RootState) => state.tasks
-  );
-  const dispatch: AppDispatch = useDispatch();
+  // Redux
+  const { data: { data: tasks = [] } = {}, isLoading } = useFetchTodosQuery();
+  const [createTodo] = useCreateTodoMutation();
+  const [updateTodo] = useUpdateTodoMutation();
+  const [deleteTodo] = useDeleteTodoMutation();
 
   const [tab, setTab] = useState(0);
   const [activeFilter, setActiveFilter] = useState<string>(TASK_FILTERS.ALL);
@@ -51,17 +48,22 @@ const TaskApp = () => {
     };
     const dateFilter = tab === 0 ? new Date() : addDays(new Date(), 1); // today or tomorrow
 
+    // Sort tasks by start_date in ascending order
+    const sortedTasks = [...tasks].sort((a, b) =>
+      new Date(a.start_date) > new Date(b.start_date) ? 1 : -1
+    );
+
     // filter tasks by date(today or tomorrow)
-    const dateFilteredTasks = tasks.filter((task) =>
+    const dateFilteredTasks = sortedTasks.filter((task) =>
       isSameDay(new Date(task.start_date), dateFilter)
     );
 
     // filter tasks
     const openTasks = dateFilteredTasks.filter((task) => !task.is_completed);
     const closedTasks = dateFilteredTasks.filter((task) => task.is_completed);
-    const archivedTasks = tasks.filter((task) =>
+    const archivedTasks = sortedTasks.filter((task) =>
       isBefore(new Date(task.end_date), startOfDay(new Date()))
-    ); // don't need to implement archived tasks
+    );
 
     // set filtered tasks length
     result.allTasksLength = dateFilteredTasks.length;
@@ -88,24 +90,6 @@ const TaskApp = () => {
     return result;
   }, [tab, tasks, activeFilter]);
 
-  // Fetch tasks on component mount
-  useEffect(() => {
-    dispatch(getTodos());
-  }, [dispatch]);
-
-  // Show Snackbar for success or error
-  useEffect(() => {
-    if (message) {
-      setSnackbarMessage(message);
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
-    } else if (error) {
-      setSnackbarMessage(error);
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-    }
-  }, [message, error]);
-
   useEffect(() => {
     // if details modal is open, update selected task
     if (selectedTask) {
@@ -114,7 +98,56 @@ const TaskApp = () => {
       );
       setSelectedTask(newSelectedTask || null);
     }
-  }, [selectedTask, tasks]);
+  }, [tasks, selectedTask]);
+
+  // Handle task completion
+  const handleTaskCompletion = async (taskId: string, isCompleted: boolean) => {
+    try {
+      await updateTodo({
+        id: taskId,
+        todo: { is_completed: isCompleted },
+      }).unwrap();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      setSnackbarMessage(error?.data?.message || 'Failed to update task');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+    }
+  };
+
+  // Handle new task submission
+  const handleTaskSubmission = async (newTask: TodoCreate) => {
+    try {
+      await createTodo(newTask).unwrap();
+      setSnackbarMessage('Task added successfully');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    } catch {
+      setSnackbarMessage('Failed to add task');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+      closeModal();
+    }
+  };
+
+  // Handle task deletion from the details modal
+  const handleTaskDeletion = async (taskId: string) => {
+    // dispatch(removeTodo(taskId));
+    try {
+      await deleteTodo(taskId).unwrap();
+      setSnackbarMessage('Task deleted successfully');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    } catch {
+      setSnackbarMessage('Failed to delete task');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+      closeDetailsModal();
+    }
+  };
 
   // Handle Snackbar close
   const handleSnackbarClose = (
@@ -137,11 +170,6 @@ const TaskApp = () => {
     }
   };
 
-  // Handle task completion
-  const handleTaskCompletion = (taskId: string, isCompleted: boolean) => {
-    dispatch(editTodo({ id: taskId, todo: { is_completed: isCompleted } }));
-  };
-
   // Open the details modal
   const openDetailsModal = (task: Todo) => {
     setSelectedTask(task);
@@ -157,34 +185,11 @@ const TaskApp = () => {
     }, 300); // for smooth close transition, remove this line
   };
 
-  // Handle task deletion from the details modal
-  const handleTaskDeletion = (taskId: string) => {
-    dispatch(removeTodo(taskId));
-    closeDetailsModal();
-  };
-
   // Handle modal open/close
   const openModal = () => setNewTaskModalOpen(true);
   const closeModal = () => {
     // Reset form and close modal
     setNewTaskModalOpen(false);
-  };
-
-  // Handle new task submission
-  const handleTaskSubmission = (newTask: TodoCreate) => {
-    const { title, description, start_date, end_date } = newTask;
-
-    // Dispatch addTodo action
-    dispatch(
-      addTodo({
-        title,
-        description,
-        start_date: new Date(start_date).toISOString(),
-        end_date: new Date(end_date).toISOString(),
-      })
-    );
-
-    closeModal();
   };
 
   return (
@@ -215,12 +220,11 @@ const TaskApp = () => {
         {/* Task List */}
         <TaskList
           tasks={categorizedTasks.filteredTasks}
-          loading={loading}
+          loading={isLoading}
           tab={tab}
           activeFilter={activeFilter}
           onListItemClick={openDetailsModal}
           onTaskCompletion={handleTaskCompletion}
-          onListRefresh={() => dispatch(getTodos())}
         />
 
         {/* Task Details Modal */}
