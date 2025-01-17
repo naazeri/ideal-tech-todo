@@ -1,6 +1,6 @@
-import { openNewTaskModal } from '@/app/store/features/ui/uiSlice';
-import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
-import { RootState } from '@/app/store/store';
+import { openNewTaskModal } from '@/app/lib/store/features/ui/uiSlice';
+import { useAppDispatch, useAppSelector } from '@/app/lib/hooks/storeHooks';
+import { RootState } from '@/app/lib/store/store';
 import { Add } from '@mui/icons-material';
 import { Box, Typography, Button } from '@mui/material';
 import { addDays, format } from 'date-fns';

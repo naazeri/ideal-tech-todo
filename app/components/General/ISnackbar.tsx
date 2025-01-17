@@ -1,7 +1,10 @@
-import { useFetchTodosQuery } from '@/app/store/features/task/tasksApiSlice';
-import { hideSnackbar, showSnackbar } from '@/app/store/features/ui/uiSlice';
-import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
-import { RootState } from '@/app/store/store';
+import { useFetchTodosQuery } from '@/app/lib/store/features/task/tasksApiSlice';
+import {
+  hideSnackbar,
+  showSnackbar,
+} from '@/app/lib/store/features/ui/uiSlice';
+import { useAppDispatch, useAppSelector } from '@/app/lib/hooks/storeHooks';
+import { RootState } from '@/app/lib/store/store';
 import { Alert, Snackbar } from '@mui/material';
 import { useEffect } from 'react';
 

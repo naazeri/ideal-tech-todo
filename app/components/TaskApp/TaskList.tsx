@@ -1,11 +1,11 @@
 import { List, Box, Typography, CircularProgress } from '@mui/material';
-import { CategorizedTasksType } from '@/app/types/todo';
+import { CategorizedTasksType } from '@/app/lib/types/todo';
 import TaskListItem from './TaskListItem';
-import { useFetchTodosQuery } from '@/app/store/features/task/tasksApiSlice';
-import { useAppSelector } from '@/app/store/hooks';
-import { RootState } from '@/app/store/store';
+import { useFetchTodosQuery } from '@/app/lib/store/features/task/tasksApiSlice';
+import { useAppSelector } from '@/app/lib/hooks/storeHooks';
+import { RootState } from '@/app/lib/store/store';
 import { useMemo } from 'react';
-import { TASK_FILTERS } from '@/app/constants/constants';
+import { TASK_FILTERS } from '@/app/lib/constants/constants';
 import { addDays, isSameDay, isBefore, startOfDay } from 'date-fns';
 import TaskFilters from './TaskFilters';
 

@@ -14,15 +14,15 @@ import {
   useUpdateTodoMutation,
   useDeleteTodoMutation,
   useFetchTodosQuery,
-} from '@/app/store/features/task/tasksApiSlice';
+} from '@/app/lib/store/features/task/tasksApiSlice';
 import {
   closeDetailsModal,
   openDetailsModal,
   showSnackbar,
-} from '@/app/store/features/ui/uiSlice';
+} from '@/app/lib/store/features/ui/uiSlice';
 import { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
-import { RootState } from '@/app/store/store';
+import { useAppDispatch, useAppSelector } from '@/app/lib/hooks/storeHooks';
+import { RootState } from '@/app/lib/store/store';
 
 const TaskDetailsModal = () => {
   const dispatch = useAppDispatch();

@@ -1,5 +1,5 @@
-import { TASK_FILTERS } from '@/app/constants/constants';
-import { Todo } from '@/app/types/todo';
+import { TASK_FILTERS } from '@/app/lib/constants/constants';
+import { Todo } from '@/app/lib/types/todo';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface SnackbarState {

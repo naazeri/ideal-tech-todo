@@ -1,6 +1,6 @@
-import { setTab } from '@/app/store/features/ui/uiSlice';
-import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
-import { RootState } from '@/app/store/store';
+import { setTab } from '@/app/lib/store/features/ui/uiSlice';
+import { useAppDispatch, useAppSelector } from '@/app/lib/hooks/storeHooks';
+import { RootState } from '@/app/lib/store/store';
 import { Tabs, Tab } from '@mui/material';
 import { SyntheticEvent } from 'react';
 

@@ -1,13 +1,13 @@
-import { TASK_FILTERS } from '@/app/constants/constants';
-import { Todo } from '@/app/types/todo';
+import { TASK_FILTERS } from '@/app/lib/constants/constants';
+import { Todo } from '@/app/lib/types/todo';
 import { ListItem, Box, Typography, Divider } from '@mui/material';
 import React from 'react';
-import { useUpdateTodoMutation } from '@/app/store/features/task/tasksApiSlice';
+import { useUpdateTodoMutation } from '@/app/lib/store/features/task/tasksApiSlice';
 import {
   openDetailsModal,
   showSnackbar,
-} from '@/app/store/features/ui/uiSlice';
-import { useAppDispatch } from '@/app/store/hooks';
+} from '@/app/lib/store/features/ui/uiSlice';
+import { useAppDispatch } from '@/app/lib/hooks/storeHooks';
 import ICheckbox from '../General/ICheckbox';
 import TaskTime from './TaskTime';
 

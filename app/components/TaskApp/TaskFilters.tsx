@@ -1,9 +1,9 @@
 import { Box, Divider } from '@mui/material';
 import IChip from '../General/IChip';
-import { TASK_FILTERS } from '@/app/constants/constants';
-import { CategorizedTasksType } from '@/app/types/todo';
-import { setActiveFilter } from '@/app/store/features/ui/uiSlice';
-import { useAppDispatch } from '@/app/store/hooks';
+import { TASK_FILTERS } from '@/app/lib/constants/constants';
+import { CategorizedTasksType } from '@/app/lib/types/todo';
+import { setActiveFilter } from '@/app/lib/store/features/ui/uiSlice';
+import { useAppDispatch } from '@/app/lib/hooks/storeHooks';
 
 interface TaskFiltersProps {
   categorizedTasks: CategorizedTasksType;

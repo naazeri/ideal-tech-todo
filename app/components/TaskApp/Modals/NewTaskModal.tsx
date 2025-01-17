@@ -1,12 +1,12 @@
-import { useCreateTodoMutation } from '@/app/store/features/task/tasksApiSlice';
+import { useCreateTodoMutation } from '@/app/lib/store/features/task/tasksApiSlice';
 import {
   closeNewTaskModal,
   showSnackbar,
-} from '@/app/store/features/ui/uiSlice';
-import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
-import { RootState } from '@/app/store/store';
-import { RequestCreate } from '@/app/types/request';
-import { Todo } from '@/app/types/todo';
+} from '@/app/lib/store/features/ui/uiSlice';
+import { useAppDispatch, useAppSelector } from '@/app/lib/hooks/storeHooks';
+import { RootState } from '@/app/lib/store/store';
+import { RequestCreate } from '@/app/lib/types/request';
+import { Todo } from '@/app/lib/types/todo';
 import { Add } from '@mui/icons-material';
 import {
   Dialog,
