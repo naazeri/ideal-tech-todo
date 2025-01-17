@@ -68,7 +68,7 @@ A simple and modern Todo application built with **React**, **Redux Toolkit**, **
 
 ## How to Use
 
-![Alt text](./doc/images/screenshot.jpg)
+![Todo app screenshot](./doc/images/screenshot.jpg)
 
 1. **Add a Task**:
 
