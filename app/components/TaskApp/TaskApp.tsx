@@ -1,7 +1,7 @@
 'use client';
 import { SyntheticEvent, useEffect, useMemo, useState } from 'react';
 import { isSameDay, addDays, startOfDay, isBefore } from 'date-fns';
-import { Todo, CategorizedTasksType, TodoCreate } from '../../types/todo';
+import { Todo, CategorizedTasksType } from '../../types/todo';
 import ISnackbar from '../General/ISnackbar';
 import { TASK_FILTERS } from '@/app/constants/constants';
 import TaskTabs from './TaskTabs';
@@ -18,6 +18,7 @@ import {
   useDeleteTodoMutation,
   useUpdateTodoMutation,
 } from '@/app/store/tasksApiSlice';
+import { RequestCreate } from '@/app/types/request';
 
 const TaskApp = () => {
   // Redux
@@ -117,7 +118,7 @@ const TaskApp = () => {
   };
 
   // Handle new task submission
-  const handleTaskSubmission = async (newTask: TodoCreate) => {
+  const handleTaskSubmission = async (newTask: RequestCreate<Todo>) => {
     try {
       await createTodo(newTask).unwrap();
       setSnackbarMessage('Task added successfully');

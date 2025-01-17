@@ -1,4 +1,5 @@
-import { TodoCreate } from '@/app/types/todo';
+import { RequestCreate } from '@/app/types/request';
+import { Todo } from '@/app/types/todo';
 import { Add } from '@mui/icons-material';
 import {
   Dialog,
@@ -15,7 +16,7 @@ import { useForm, Controller } from 'react-hook-form';
 interface NewTaskModalProps {
   openModal: boolean;
   onCloseModal: () => void;
-  onTaskSubmission: (newTask: TodoCreate) => void;
+  onTaskSubmission: (newTask: RequestCreate<Todo>) => void;
 }
 
 const NewTaskModal = ({
@@ -23,7 +24,7 @@ const NewTaskModal = ({
   onCloseModal,
   onTaskSubmission,
 }: NewTaskModalProps) => {
-  const DEFAULT_TASK_VALUES: TodoCreate = {
+  const DEFAULT_TASK_VALUES: RequestCreate<Todo> = {
     title: '',
     description: '',
     start_date: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
@@ -35,7 +36,7 @@ const NewTaskModal = ({
     control,
     reset,
     formState: { errors },
-  } = useForm<TodoCreate>({
+  } = useForm<RequestCreate<Todo>>({
     defaultValues: DEFAULT_TASK_VALUES,
   });
 
@@ -47,7 +48,7 @@ const NewTaskModal = ({
     }, 300);
   };
 
-  const onSubmit = (data: TodoCreate) => {
+  const onSubmit = (data: RequestCreate<Todo>) => {
     // Convert start_date and end_date to ISO
     data.start_date = new Date(data.start_date).toISOString();
     data.end_date = new Date(data.end_date).toISOString();
