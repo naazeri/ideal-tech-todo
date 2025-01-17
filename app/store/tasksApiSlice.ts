@@ -1,5 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import axiosBaseQuery from '../services/baseQuery';
+import axiosBaseQuery from './baseQuery';
 import { Todo } from '../types/todo';
 import { ResponseTodo } from '../types/response';
 import {

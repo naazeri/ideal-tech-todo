@@ -19,6 +19,11 @@ const axiosBaseQuery =
         method,
         data,
         params,
+        timeout: 10000,
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
       });
       return { data: result.data };
     } catch (axiosError) {

@@ -22,7 +22,11 @@ import { RequestCreate } from '@/app/types/request';
 
 const TaskApp = () => {
   // Redux
-  const { data: { data: tasks = [] } = {}, isLoading } = useFetchTodosQuery();
+  const {
+    data: { data: tasks = [] } = {},
+    isLoading,
+    error,
+  } = useFetchTodosQuery();
   const [createTodo] = useCreateTodoMutation();
   const [updateTodo] = useUpdateTodoMutation();
   const [deleteTodo] = useDeleteTodoMutation();
@@ -101,6 +105,14 @@ const TaskApp = () => {
     }
   }, [tasks, selectedTask]);
 
+  useEffect(() => {
+    if (error) {
+      setSnackbarMessage(error?.data?.message || 'Failed to fetch tasks');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  }, [error]);
+
   // Handle task completion
   const handleTaskCompletion = async (taskId: string, isCompleted: boolean) => {
     try {
@@ -124,8 +136,11 @@ const TaskApp = () => {
       setSnackbarMessage('Task added successfully');
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
-    } catch {
-      setSnackbarMessage('Failed to add task');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.log(error);
+
+      setSnackbarMessage(error?.data?.message || 'Failed to add task');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     } finally {
@@ -181,9 +196,9 @@ const TaskApp = () => {
   const closeDetailsModal = () => {
     setDetailsModalOpen(false);
 
-    setTimeout(() => {
-      setSelectedTask(null);
-    }, 300); // for smooth close transition, remove this line
+    // setTimeout(() => {
+    setSelectedTask(null);
+    // }, 300); // for smooth close transition, remove this line
   };
 
   // Handle modal open/close
