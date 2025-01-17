@@ -44,19 +44,21 @@ A simple and modern Todo application built with **React**, **Redux Toolkit**, **
 2. Install dependencies:
 
    ```bash
-      npm run dev
+      npm i
       # or
-      yarn dev
+      yarn i
       # or
-      pnpm dev
-      # or
-      bun dev
+      pnpm i
    ```
 
 3. Start the development server:
 
    ```bash
-   npm run dev
+      npm run dev
+      # or
+      yarn dev
+      # or
+      pnpm dev
    ```
 
 4. Open your browser and navigate to:
