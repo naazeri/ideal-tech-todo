@@ -88,7 +88,7 @@ const TaskList = () => {
         )}
 
         {/* No Tasks */}
-        {!isLoading && tasks.length === 0 && (
+        {!isLoading && categorizedTasks.filteredTasks.length === 0 && (
           <Typography textAlign="center" color="textSecondary">
             No tasks available.
           </Typography>
@@ -102,7 +102,7 @@ const TaskList = () => {
             gap: 2,
           }}
         >
-          {tasks.map((task) => (
+          {categorizedTasks.filteredTasks.map((task) => (
             <TaskListItem
               key={task._id}
               task={task}
