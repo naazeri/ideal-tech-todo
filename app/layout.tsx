@@ -4,7 +4,7 @@ import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { ThemeProvider } from '@mui/material/styles';
 import { Poppins } from 'next/font/google';
 import theme from './styles/theme';
-import { StoreProvider } from './store/StoreProvider';
+import { StoreProvider } from '@/app/lib/store/StoreProvider';
 import { CssBaseline } from '@mui/material';
 
 const poppins = Poppins({
