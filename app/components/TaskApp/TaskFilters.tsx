@@ -11,8 +11,6 @@ interface TaskFiltersProps {
 }
 
 const TaskFilters = ({ categorizedTasks, activeFilter }: TaskFiltersProps) => {
-  console.log('TaskFilters rendered');
-
   // Handle filter change
   const dispatch = useAppDispatch();
 

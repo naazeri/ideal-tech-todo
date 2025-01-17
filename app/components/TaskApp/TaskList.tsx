@@ -10,7 +10,6 @@ import { addDays, isSameDay, isBefore, startOfDay } from 'date-fns';
 import TaskFilters from './TaskFilters';
 
 const TaskList = () => {
-  console.log('TaskList rendered');
   const { data: { data: tasks = [] } = {}, isLoading } = useFetchTodosQuery();
   const { tab, activeFilter } = useAppSelector((state: RootState) => state.ui);
 

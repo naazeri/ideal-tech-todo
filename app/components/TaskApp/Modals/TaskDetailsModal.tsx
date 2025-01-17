@@ -60,8 +60,14 @@ const TaskDetailsModal = () => {
         id: selectedTask._id,
         todo: { is_completed: isCompleted },
       }).unwrap();
-    } catch (error) {
-      console.error('Failed to update task:', error);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      dispatch(
+        showSnackbar({
+          message: error?.data?.message || 'Failed to update task',
+          severity: 'error',
+        })
+      );
     }
   };
 

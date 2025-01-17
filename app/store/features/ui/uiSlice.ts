@@ -36,6 +36,7 @@ const uiSlice = createSlice({
   reducers: {
     setTab(state, action: PayloadAction<number>) {
       state.tab = action.payload;
+      state.activeFilter = TASK_FILTERS.ALL;
     },
 
     setActiveFilter(state, action: PayloadAction<string>) {
