@@ -1,16 +1,16 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import axiosBaseQuery from './baseQuery';
-import { Todo } from '../types/todo';
-import { ResponseTodo } from '../types/response';
+import axiosBaseQuery from '../../baseQuery';
+import { Todo } from '../../../types/todo';
+import { ResponseTodo } from '../../../types/response';
 import {
   fetchTodosService,
   createTodoService,
   updateTodoService,
   deleteTodoService,
-} from '../services/todoService';
-import { RequestCreate, RequestUpdate } from '../types/request';
+} from '../../../services/todoService';
+import { RequestCreate, RequestUpdate } from '../../../types/request';
 
-export const tasksApi = createApi({
+export const tasksApiSlice = createApi({
   reducerPath: 'tasksApi',
   baseQuery: axiosBaseQuery(),
   tagTypes: ['Todos'],
@@ -42,4 +42,4 @@ export const {
   useCreateTodoMutation,
   useUpdateTodoMutation,
   useDeleteTodoMutation,
-} = tasksApi;
+} = tasksApiSlice;

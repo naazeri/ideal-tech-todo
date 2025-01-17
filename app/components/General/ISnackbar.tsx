@@ -1,23 +1,48 @@
+import { useFetchTodosQuery } from '@/app/store/features/task/tasksApiSlice';
+import { hideSnackbar, showSnackbar } from '@/app/store/features/ui/uiSlice';
+import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
+import { RootState } from '@/app/store/store';
 import { Alert, Snackbar } from '@mui/material';
+import { useEffect } from 'react';
 
-interface ISnackbarProps {
-  open: boolean;
-  message: string | null;
-  severity: 'success' | 'error' | 'info' | 'warning';
-  onClose: (event?: React.SyntheticEvent | Event, reason?: string) => void;
-}
+const ISnackbar = () => {
+  const dispatch = useAppDispatch();
+  const { error } = useFetchTodosQuery();
+  const { open, message, severity } = useAppSelector(
+    (state: RootState) => state.ui.snackbar
+  );
 
-const ISnackbar = ({ open, message, severity, onClose }: ISnackbarProps) => {
+  useEffect(() => {
+    if (error) {
+      dispatch(
+        showSnackbar({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          message: (error as any)?.data?.message || 'Failed to fetch tasks',
+          severity: 'error',
+        })
+      );
+    }
+  }, [error, dispatch]);
+
+  const handleClose = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason !== 'clickaway') {
+      dispatch(hideSnackbar());
+    }
+  };
+
   return (
     <Snackbar
       open={open}
       autoHideDuration={5000}
-      onClose={onClose}
+      onClose={handleClose}
       anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       sx={{ mx: 2, my: 2 }}
     >
       <Alert
-        onClose={onClose}
+        onClose={handleClose}
         severity={severity}
         sx={{
           fontSize: 15,

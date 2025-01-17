@@ -1,13 +1,19 @@
+import { openNewTaskModal } from '@/app/store/features/ui/uiSlice';
+import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
+import { RootState } from '@/app/store/store';
 import { Add } from '@mui/icons-material';
 import { Box, Typography, Button } from '@mui/material';
 import { addDays, format } from 'date-fns';
 
-interface TaskHeaderProps {
-  tab: number;
-  openModal: () => void;
-}
+const TaskHeader = () => {
+  const dispatch = useAppDispatch();
+  const { tab } = useAppSelector((state: RootState) => state.ui);
 
-const TaskHeader = ({ tab, openModal }: TaskHeaderProps) => {
+  // Handle new task modal open/close
+  const handleOpenNewTaskModal = () => {
+    return dispatch(openNewTaskModal());
+  };
+
   return (
     <Box
       display="flex"
@@ -44,7 +50,7 @@ const TaskHeader = ({ tab, openModal }: TaskHeaderProps) => {
             boxShadow: 'none',
           },
         }}
-        onClick={openModal}
+        onClick={handleOpenNewTaskModal}
       >
         New Task
       </Button>

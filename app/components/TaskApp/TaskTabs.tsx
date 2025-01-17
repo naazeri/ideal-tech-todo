@@ -1,16 +1,22 @@
+import { setTab } from '@/app/store/features/ui/uiSlice';
+import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
+import { RootState } from '@/app/store/store';
 import { Tabs, Tab } from '@mui/material';
 import { SyntheticEvent } from 'react';
 
-interface TaskTabsProps {
-  value: number;
-  onChange: (event: SyntheticEvent, newValue: number) => void;
-}
+const TaskTabs = () => {
+  const dispatch = useAppDispatch();
+  const { tab } = useAppSelector((state: RootState) => state.ui);
 
-const TaskTabs = ({ value, onChange }: TaskTabsProps) => {
+  // Handle tab change
+  const handleTabChange = (event: SyntheticEvent, newValue: number) => {
+    dispatch(setTab(newValue));
+  };
+
   return (
     <Tabs
-      value={value}
-      onChange={onChange}
+      value={tab}
+      onChange={handleTabChange}
       textColor="inherit"
       variant="fullWidth"
       sx={{

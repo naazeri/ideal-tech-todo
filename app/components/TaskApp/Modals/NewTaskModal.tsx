@@ -1,3 +1,10 @@
+import { useCreateTodoMutation } from '@/app/store/features/task/tasksApiSlice';
+import {
+  closeNewTaskModal,
+  showSnackbar,
+} from '@/app/store/features/ui/uiSlice';
+import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
+import { RootState } from '@/app/store/store';
 import { RequestCreate } from '@/app/types/request';
 import { Todo } from '@/app/types/todo';
 import { Add } from '@mui/icons-material';
@@ -13,17 +20,11 @@ import {
 import { addHours, format } from 'date-fns';
 import { useForm, Controller } from 'react-hook-form';
 
-interface NewTaskModalProps {
-  openModal: boolean;
-  onCloseModal: () => void;
-  onTaskSubmission: (newTask: RequestCreate<Todo>) => void;
-}
+const NewTaskModal = () => {
+  const dispatch = useAppDispatch();
+  const { newTaskModalOpen } = useAppSelector((state: RootState) => state.ui);
+  const [createTodo] = useCreateTodoMutation();
 
-const NewTaskModal = ({
-  openModal,
-  onCloseModal,
-  onTaskSubmission,
-}: NewTaskModalProps) => {
   const DEFAULT_TASK_VALUES: RequestCreate<Todo> = {
     title: '',
     description: '',
@@ -40,26 +41,44 @@ const NewTaskModal = ({
     defaultValues: DEFAULT_TASK_VALUES,
   });
 
+  // Handle new task submission
+  const handleTaskSubmission = async (newTask: RequestCreate<Todo>) => {
+    // Convert start_date and end_date to ISO
+    newTask.start_date = new Date(newTask.start_date).toISOString();
+    newTask.end_date = new Date(newTask.end_date).toISOString();
+
+    try {
+      await createTodo(newTask).unwrap();
+      dispatch(
+        showSnackbar({
+          message: 'Task added successfully',
+          severity: 'success',
+        })
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      dispatch(
+        showSnackbar({
+          message: error?.data?.message || 'Failed to add task',
+          severity: 'error',
+        })
+      );
+    } finally {
+      handleCloseModal();
+    }
+  };
+
   const handleCloseModal = () => {
-    onCloseModal();
+    dispatch(closeNewTaskModal());
 
     setTimeout(() => {
       reset(DEFAULT_TASK_VALUES);
     }, 300);
   };
 
-  const onSubmit = (data: RequestCreate<Todo>) => {
-    // Convert start_date and end_date to ISO
-    data.start_date = new Date(data.start_date).toISOString();
-    data.end_date = new Date(data.end_date).toISOString();
-
-    onTaskSubmission(data); // Submit form data
-    handleCloseModal(); // Close the modal
-  };
-
   return (
     <Dialog
-      open={openModal}
+      open={newTaskModalOpen}
       onClose={(event, reason) => {
         if (reason !== 'backdropClick' && reason !== 'escapeKeyDown') {
           handleCloseModal();
@@ -69,7 +88,7 @@ const NewTaskModal = ({
       <Box mx={1} my={2}>
         <DialogTitle>Enter New Task</DialogTitle>
         <DialogContent>
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={handleSubmit(handleTaskSubmission)}>
             <Box display="flex" flexDirection="column" gap={2} mt={1}>
               <Controller
                 name="title"
@@ -172,7 +191,7 @@ const NewTaskModal = ({
             startIcon={<Add />}
             color="primary"
             variant="contained"
-            onClick={handleSubmit(onSubmit)}
+            onClick={handleSubmit(handleTaskSubmission)}
             sx={{
               boxShadow: 'none',
               '&:hover': {

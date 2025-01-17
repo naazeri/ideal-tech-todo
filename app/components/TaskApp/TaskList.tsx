@@ -1,60 +1,118 @@
 import { List, Box, Typography, CircularProgress } from '@mui/material';
-import { Todo } from '@/app/types/todo';
+import { CategorizedTasksType } from '@/app/types/todo';
 import TaskListItem from './TaskListItem';
+import { useFetchTodosQuery } from '@/app/store/features/task/tasksApiSlice';
+import { useAppSelector } from '@/app/store/hooks';
+import { RootState } from '@/app/store/store';
+import { useMemo } from 'react';
+import { TASK_FILTERS } from '@/app/constants/constants';
+import { addDays, isSameDay, isBefore, startOfDay } from 'date-fns';
+import TaskFilters from './TaskFilters';
 
-interface TaskListProps {
-  tasks: Todo[];
-  loading: boolean;
-  tab: number;
-  activeFilter: string;
-  onListItemClick: (task: Todo) => void;
-  onTaskCompletion: (taskId: string, isCompleted: boolean) => void;
-}
+const TaskList = () => {
+  console.log('TaskList rendered');
+  const { data: { data: tasks = [] } = {}, isLoading } = useFetchTodosQuery();
+  const { tab, activeFilter } = useAppSelector((state: RootState) => state.ui);
 
-const TaskList = ({
-  tasks,
-  loading,
-  tab,
-  activeFilter,
-  onListItemClick,
-  onTaskCompletion,
-}: TaskListProps) => {
+  // Categorize tasks whenever tasks or tab change
+  const categorizedTasks: CategorizedTasksType = useMemo(() => {
+    const result: CategorizedTasksType = {
+      filteredTasks: [],
+      allTasksLength: 0,
+      openTasksLength: 0,
+      closedTasksLength: 0,
+      archivedTasksLength: 0,
+    };
+
+    // today or tomorrow
+    const dateFilter = tab === 0 ? new Date() : addDays(new Date(), 1);
+
+    // Sort tasks by start_date in ascending order
+    const sortedTasks = [...tasks].sort((a, b) =>
+      new Date(a.start_date) > new Date(b.start_date) ? 1 : -1
+    );
+
+    // filter tasks by date(today or tomorrow)
+    const dateFilteredTasks = sortedTasks.filter((task) =>
+      isSameDay(new Date(task.start_date), dateFilter)
+    );
+
+    // filter tasks
+    const openTasks = dateFilteredTasks.filter((task) => !task.is_completed);
+    const closedTasks = dateFilteredTasks.filter((task) => task.is_completed);
+    const archivedTasks = sortedTasks.filter((task) =>
+      isBefore(new Date(task.end_date), startOfDay(new Date()))
+    );
+
+    // set filtered tasks length
+    result.allTasksLength = dateFilteredTasks.length;
+    result.openTasksLength = openTasks.length;
+    result.closedTasksLength = closedTasks.length;
+    result.archivedTasksLength = archivedTasks.length;
+
+    // filter tasks by activeFilter
+    switch (activeFilter) {
+      case TASK_FILTERS.OPEN:
+        result.filteredTasks = openTasks;
+        break;
+      case TASK_FILTERS.CLOSED:
+        result.filteredTasks = closedTasks;
+        break;
+      case TASK_FILTERS.ARCHIVED:
+        result.filteredTasks = archivedTasks;
+        break;
+      default:
+        result.filteredTasks = dateFilteredTasks;
+        break;
+    }
+
+    // dispatch(setCategorizedTasks(result));
+    return result;
+  }, [tab, tasks, activeFilter]);
+
   return (
-    <Box sx={{ mt: 5, mb: 8, p: 0 }}>
-      {/* Loading */}
-      {loading && (
-        <Box display="flex" justifyContent="center" py={5}>
-          <CircularProgress />
-        </Box>
-      )}
+    <>
+      {/* Filters */}
+      <TaskFilters
+        categorizedTasks={categorizedTasks}
+        activeFilter={activeFilter}
+      />
 
-      {/* No Tasks */}
-      {!loading && tasks.length === 0 && (
-        <Typography textAlign="center" color="textSecondary">
-          No tasks available.
-        </Typography>
-      )}
+      {/* List Container */}
+      <Box sx={{ mt: 5, mb: 8, p: 0 }}>
+        {/* Loading */}
+        {isLoading && (
+          <Box display="flex" justifyContent="center" py={5}>
+            <CircularProgress />
+          </Box>
+        )}
 
-      {/* Tasks List */}
-      <List
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2,
-        }}
-      >
-        {tasks.map((task) => (
-          <TaskListItem
-            key={task._id}
-            task={task}
-            tab={tab}
-            activeFilter={activeFilter}
-            onListItemClick={onListItemClick}
-            onTaskCompletion={onTaskCompletion}
-          />
-        ))}
-      </List>
-    </Box>
+        {/* No Tasks */}
+        {!isLoading && tasks.length === 0 && (
+          <Typography textAlign="center" color="textSecondary">
+            No tasks available.
+          </Typography>
+        )}
+
+        {/* Tasks List */}
+        <List
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+          }}
+        >
+          {tasks.map((task) => (
+            <TaskListItem
+              key={task._id}
+              task={task}
+              tab={tab}
+              activeFilter={activeFilter}
+            />
+          ))}
+        </List>
+      </Box>
+    </>
   );
 };
 

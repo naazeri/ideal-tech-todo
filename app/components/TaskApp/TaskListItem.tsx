@@ -2,6 +2,12 @@ import { TASK_FILTERS } from '@/app/constants/constants';
 import { Todo } from '@/app/types/todo';
 import { ListItem, Box, Typography, Divider } from '@mui/material';
 import React from 'react';
+import { useUpdateTodoMutation } from '@/app/store/features/task/tasksApiSlice';
+import {
+  openDetailsModal,
+  showSnackbar,
+} from '@/app/store/features/ui/uiSlice';
+import { useAppDispatch } from '@/app/store/hooks';
 import ICheckbox from '../General/ICheckbox';
 import TaskTime from './TaskTime';
 
@@ -9,21 +15,40 @@ interface TaskListItemProps {
   task: Todo;
   tab: number;
   activeFilter: string;
-  onListItemClick: (task: Todo) => void;
-  onTaskCompletion: (taskId: string, isCompleted: boolean) => void;
 }
 
-const TaskListItem = ({
-  task,
-  tab,
-  activeFilter,
-  onListItemClick,
-  onTaskCompletion,
-}: TaskListItemProps) => {
+const TaskListItem = ({ task, tab, activeFilter }: TaskListItemProps) => {
+  const dispatch = useAppDispatch();
+  const [updateTodo] = useUpdateTodoMutation();
+
+  // Handle task completion
+  const handleTaskCompletion = async (taskId: string, isCompleted: boolean) => {
+    try {
+      await updateTodo({
+        id: taskId,
+        todo: { is_completed: isCompleted },
+      }).unwrap();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      dispatch(
+        showSnackbar({
+          message: error?.data?.message || 'Failed to update task',
+          severity: 'error',
+        })
+      );
+    } finally {
+    }
+  };
+
+  // Handle details modal open/close
+  const handleListItemClick = (task: Todo) => {
+    return dispatch(openDetailsModal(task));
+  };
+
   return (
     <ListItem
       key={task._id}
-      onClick={() => onListItemClick(task)}
+      onClick={() => handleListItemClick(task)}
       sx={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -57,7 +82,7 @@ const TaskListItem = ({
           <ICheckbox
             checked={task.is_completed}
             stopPropagation={true} // Prevent ListItem click
-            onChange={(e) => onTaskCompletion(task._id, e.target.checked)}
+            onChange={(e) => handleTaskCompletion(task._id, e.target.checked)}
           />
         </Box>
         <Divider
