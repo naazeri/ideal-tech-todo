@@ -1,5 +1,8 @@
 import { openNewTaskModal } from '@/app/lib/store/features/ui/uiSlice';
-import { useAppDispatch, useAppSelector } from '@/app/lib/hooks/storeHooks';
+import {
+  useAppDispatch,
+  useAppSelector,
+} from '@/app/lib/hooks/features/store/storeHooks';
 import { RootState } from '@/app/lib/store/store';
 import { Add } from '@mui/icons-material';
 import { Box, Typography, Button } from '@mui/material';

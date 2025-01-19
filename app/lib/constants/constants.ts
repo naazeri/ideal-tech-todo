@@ -5,3 +5,7 @@ export const TASK_FILTERS = {
   CLOSED: 'Closed',
   ARCHIVED: 'Archived',
 };
+
+export const LOCALSTORAGE_KEYS = {
+  CURRENT_TAB: 'currentTab',
+};

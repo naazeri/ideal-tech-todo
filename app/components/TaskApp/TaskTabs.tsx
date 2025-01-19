@@ -1,12 +1,12 @@
 import { setTab } from '@/app/lib/store/features/ui/uiSlice';
-import { useAppDispatch, useAppSelector } from '@/app/lib/hooks/storeHooks';
-import { RootState } from '@/app/lib/store/store';
+import { useAppDispatch } from '@/app/lib/hooks/features/store/storeHooks';
 import { Tabs, Tab } from '@mui/material';
 import { SyntheticEvent } from 'react';
+import { usePersistentTab } from '@/app/lib/hooks/features/ui/usePersistentTab';
 
 const TaskTabs = () => {
   const dispatch = useAppDispatch();
-  const { tab } = useAppSelector((state: RootState) => state.ui);
+  const tab = usePersistentTab();
 
   // Handle tab change
   const handleTabChange = (event: SyntheticEvent, newValue: number) => {

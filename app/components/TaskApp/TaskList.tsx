@@ -1,17 +1,32 @@
-import { List, Box, Typography, CircularProgress } from '@mui/material';
+import {
+  List,
+  Box,
+  Typography,
+  CircularProgress,
+  InputAdornment,
+  TextField,
+} from '@mui/material';
 import { CategorizedTasksType } from '@/app/lib/types/todo';
 import TaskListItem from './TaskListItem';
 import { useFetchTodosQuery } from '@/app/lib/store/features/task/tasksApiSlice';
-import { useAppSelector } from '@/app/lib/hooks/storeHooks';
+import {
+  useAppDispatch,
+  useAppSelector,
+} from '@/app/lib/hooks/features/store/storeHooks';
 import { RootState } from '@/app/lib/store/store';
 import { useMemo } from 'react';
 import { TASK_FILTERS } from '@/app/lib/constants/constants';
 import { addDays, isSameDay, isBefore, startOfDay } from 'date-fns';
 import TaskFilters from './TaskFilters';
+import { Search } from '@mui/icons-material';
+import { setSearchTerm } from '@/app/lib/store/features/ui/uiSlice';
 
 const TaskList = () => {
+  const dispatch = useAppDispatch();
   const { data: { data: tasks = [] } = {}, isLoading } = useFetchTodosQuery();
-  const { tab, activeFilter } = useAppSelector((state: RootState) => state.ui);
+  const { tab, activeFilter, searchTerm } = useAppSelector(
+    (state: RootState) => state.ui
+  );
 
   // Categorize tasks whenever tasks or tab change
   const categorizedTasks: CategorizedTasksType = useMemo(() => {
@@ -32,15 +47,17 @@ const TaskList = () => {
     );
 
     // filter tasks by date(today or tomorrow)
-    const dateFilteredTasks = sortedTasks.filter((task) =>
-      isSameDay(new Date(task.start_date), dateFilter)
+    const dateFilteredTasks = sortedTasks.filter(
+      (task) =>
+        task.title.includes(searchTerm) &&
+        isSameDay(new Date(task.start_date), dateFilter)
     );
 
     // filter tasks
     const openTasks = dateFilteredTasks.filter((task) => !task.is_completed);
     const closedTasks = dateFilteredTasks.filter((task) => task.is_completed);
     const archivedTasks = sortedTasks.filter((task) =>
-      isBefore(new Date(task.end_date), startOfDay(new Date()))
+      isBefore(new Date(task.start_date), startOfDay(new Date()))
     );
 
     // set filtered tasks length
@@ -67,7 +84,11 @@ const TaskList = () => {
 
     // dispatch(setCategorizedTasks(result));
     return result;
-  }, [tab, tasks, activeFilter]);
+  }, [tab, tasks, activeFilter, searchTerm]);
+
+  const handleSearch = (text: string) => {
+    dispatch(setSearchTerm(text));
+  };
 
   return (
     <>
@@ -92,6 +113,23 @@ const TaskList = () => {
             No tasks available.
           </Typography>
         )}
+        {/* Search Input */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+          <TextField
+            placeholder="Search tasks..."
+            variant="outlined"
+            size="small"
+            fullWidth
+            onChange={(e) => handleSearch(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
 
         {/* Tasks List */}
         <List

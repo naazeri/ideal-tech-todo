@@ -3,7 +3,10 @@ import {
   hideSnackbar,
   showSnackbar,
 } from '@/app/lib/store/features/ui/uiSlice';
-import { useAppDispatch, useAppSelector } from '@/app/lib/hooks/storeHooks';
+import {
+  useAppDispatch,
+  useAppSelector,
+} from '@/app/lib/hooks/features/store/storeHooks';
 import { RootState } from '@/app/lib/store/store';
 import { Alert, Snackbar } from '@mui/material';
 import { useEffect } from 'react';

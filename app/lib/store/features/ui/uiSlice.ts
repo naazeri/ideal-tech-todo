@@ -10,6 +10,7 @@ interface SnackbarState {
 
 interface UIState {
   tab: number;
+  searchTerm: string;
   activeFilter: string;
   selectedTask: Todo | null;
   detailsModalOpen: boolean;
@@ -19,6 +20,7 @@ interface UIState {
 
 const initialState: UIState = {
   tab: 0,
+  searchTerm: '',
   activeFilter: TASK_FILTERS.ALL,
   selectedTask: null,
   detailsModalOpen: false,
@@ -34,6 +36,9 @@ const uiSlice = createSlice({
   name: 'ui',
   initialState,
   reducers: {
+    setSearchTerm(state, action: PayloadAction<string>) {
+      state.searchTerm = action.payload;
+    },
     setTab(state, action: PayloadAction<number>) {
       state.tab = action.payload;
       state.activeFilter = TASK_FILTERS.ALL;
@@ -78,6 +83,7 @@ const uiSlice = createSlice({
 });
 
 export const {
+  setSearchTerm,
   setTab,
   setActiveFilter,
   openDetailsModal,

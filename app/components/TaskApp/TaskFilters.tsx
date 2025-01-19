@@ -3,7 +3,7 @@ import IChip from '../General/IChip';
 import { TASK_FILTERS } from '@/app/lib/constants/constants';
 import { CategorizedTasksType } from '@/app/lib/types/todo';
 import { setActiveFilter } from '@/app/lib/store/features/ui/uiSlice';
-import { useAppDispatch } from '@/app/lib/hooks/storeHooks';
+import { useAppDispatch } from '@/app/lib/hooks/features/store/storeHooks';
 
 interface TaskFiltersProps {
   categorizedTasks: CategorizedTasksType;

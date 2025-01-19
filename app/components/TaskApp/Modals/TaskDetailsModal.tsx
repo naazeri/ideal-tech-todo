@@ -21,8 +21,11 @@ import {
   showSnackbar,
 } from '@/app/lib/store/features/ui/uiSlice';
 import { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/app/lib/hooks/storeHooks';
 import { RootState } from '@/app/lib/store/store';
+import {
+  useAppDispatch,
+  useAppSelector,
+} from '@/app/lib/hooks/features/store/storeHooks';
 
 const TaskDetailsModal = () => {
   const dispatch = useAppDispatch();

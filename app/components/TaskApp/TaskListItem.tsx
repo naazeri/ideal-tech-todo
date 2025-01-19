@@ -7,9 +7,10 @@ import {
   openDetailsModal,
   showSnackbar,
 } from '@/app/lib/store/features/ui/uiSlice';
-import { useAppDispatch } from '@/app/lib/hooks/storeHooks';
+import { useAppDispatch } from '@/app/lib/hooks/features/store/storeHooks';
 import ICheckbox from '../General/ICheckbox';
 import TaskTime from './TaskTime';
+// import { useRouter } from 'next/navigation';
 
 interface TaskListItemProps {
   task: Todo;
@@ -20,6 +21,7 @@ interface TaskListItemProps {
 const TaskListItem = ({ task, tab, activeFilter }: TaskListItemProps) => {
   const dispatch = useAppDispatch();
   const [updateTodo] = useUpdateTodoMutation();
+  // const router = useRouter();
 
   // Handle task completion
   const handleTaskCompletion = async (taskId: string, isCompleted: boolean) => {
@@ -42,6 +44,7 @@ const TaskListItem = ({ task, tab, activeFilter }: TaskListItemProps) => {
 
   // Handle details modal open/close
   const handleListItemClick = (task: Todo) => {
+    // router.push(`/task/${task._id}`);
     return dispatch(openDetailsModal(task));
   };
 
